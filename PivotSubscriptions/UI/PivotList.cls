@@ -26,14 +26,13 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <column id="Owner" header="Owner" colName="POwner" width="10%" filterType="text"/>
 <column id="Name" header="Name" colName="PName" width="50%" filterType="text" />
 <column id="View" header="View in Analyzer" colName="PView" width="30%" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.PView)#"/>
-<column OnDrawCell="DrawAddAlertLink"/>
+<column OnDrawCell="DrawAddSubscriptionLink"/>
 </tablePane>
 </pane>
 }
 
 Method ExecuteRS(pRS As %ResultSet, Output pSC As %Status, pInfo As %ZEN.Auxiliary.QueryInfo) As %Boolean
 {
-	set ^pfs($i(^pfs),"executers")=1
 	quit pRS.%Execute($G(pInfo.filters("POwner")),$G(pInfo.filters("PName")))
 }
 
@@ -43,15 +42,14 @@ ClientMethod launchAddSubscription(pivotName) [ Language = javascript ]
 	zenPage.launchPopupWindow(url,'Add Subscription','status,scrollbars,resizable,width=500,height=500');
 }
 
-ClassMethod DrawAddAlertLink(pTable As %ZEN.Component.tablePane, pName As %String, pSeed As %String) As %Status [ Internal ]
+ClassMethod DrawAddSubscriptionLink(pTable As %ZEN.Component.tablePane, pName As %String, pSeed As %String) As %Status [ Internal ]
 {
-	set ^pfs($i(^pfs),"draw add link")=1
 	&html<<a href="#" onclick="zenPage.launchAddSubscription('#(%query("PName"))#');return false;">#("Add Subscription")#</a>>
 
 	Quit $$$OK
 }
 
-Query GetPivots(pOwner As %String = "", pName As %String = "") As %Query(ROWSPEC = "POwner:%String,PName:%String,PView:%String,PAlert:%String")
+Query GetPivots(pOwner As %String = "", pName As %String = "") As %Query(ROWSPEC = "POwner:%String,PName:%String,PView:%String,PSubscription:%String")
 {
 }
 
@@ -77,20 +75,20 @@ ClassMethod GetPivotsExecute(ByRef qHandle As %Binary, pOwner As %String = "", p
 		Set tItem = $O(tItems(tItem))
 	}
 	
-	Merge ^||DSII.getPivotExecute=tPivots
+	Merge ^||PivotSubscriptions.getPivotExecute=tPivots
     set qHandle=""
     Quit $$$OK
 }
 
 ClassMethod GetPivotsFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef AtEnd As %Integer = 0) As %Status [ PlaceAfter = GetPivotsExecute ]
 {
-    set qHandle=$O(^||DSII.getPivotExecute(qHandle))
+    set qHandle=$O(^||PivotSubscriptions.getPivotExecute(qHandle))
     if qHandle="" {
 	    Set AtEnd=1
 	    Quit $$$OK
     }
 	
-	Set Row=$lb($LG(^||DSII.getPivotExecute(qHandle),10),$LG(^||DSII.getPivotExecute(qHandle),1),$ZCONVERT($LG(^||DSII.getPivotExecute(qHandle),1),"O","HTML"),"Alert")
+	Set Row=$lb($LG(^||PivotSubscriptions.getPivotExecute(qHandle),10),$LG(^||PivotSubscriptions.getPivotExecute(qHandle),1),$ZCONVERT($LG(^||PivotSubscriptions.getPivotExecute(qHandle),1),"O","HTML"),"Subscription")
     Set AtEnd=0
     
     Quit $$$OK
