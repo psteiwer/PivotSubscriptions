@@ -1,7 +1,5 @@
 Include %DeepSee
 
-/// DeepSee CSV Import page.
-/// This page lets you import data from a CSV file into DeepSee.
 Class PivotSubscriptions.UI.SubscriptionManager Extends %DeepSee.UI.standardPage [ System = 4 ]
 {
 
@@ -97,8 +95,8 @@ ClientMethod editSubscription(subscriptionId,pivotName) [ Internal, Language = j
 	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+subscriptionId+'&PIVOTNAME='+pivotName,'PivotSubscriptions','status,resizable=yes,width=900,height=700',parms);
 }
 
-/// Delete the selected alert.
-ClientMethod deleteAlert(pID) [ Language = javascript ]
+/// Delete the selected subscription.
+ClientMethod deleteSubscription(pID) [ Language = javascript ]
 {
 	if (pID!="") {
 		if (confirm($$$Text('Do you really wish to delete this subscription?'))) {
@@ -125,7 +123,7 @@ Method Delete(pID As %Integer) As %String [ ZenMethod ]
 	Quit tMsg
 }
 
-/// Query to get alerts for Alert Manager display table.
+/// Query to get subscriptions for Subscription Manager display table.
 Query GetSubscriptionsForDisplay() As %SQLQuery
 {
 	SELECT ID,Pivot,Emails FROM PivotSubscriptions.Subscription
