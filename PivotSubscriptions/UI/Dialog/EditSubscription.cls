@@ -1,4 +1,3 @@
-/// Created using the page template: Default
 Class PivotSubscriptions.UI.Dialog.EditSubscription Extends %DeepSee.UI.Dialog.standardDialog
 {
 
@@ -37,10 +36,9 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 }
 
 /// Get the (localized) title string for the dialog.
-/// This should be implemented in a subclass.
 Method %OnGetTitle() As %String
 {
-	Quit "Add Alert"
+	Quit "Edit Subscription"
 }
 
 Method %OnAfterCreatePage() As %Status
@@ -54,10 +52,10 @@ Method %OnAfterCreatePage() As %Status
 	}
 
 	Set tLabel = ..%GetComponentById("Label")
-	Set tLabel.label="Add alert for """_$ZCONVERT(..pivotName,"I","HTML")_""
+	Set tLabel.label="Edit subscription for """_$ZCONVERT(..pivotName,"I","HTML")_""""
 
 	Set tOK = ..%GetComponentById("btnOK")
-	Set tOK.caption="Add Alert"
+	Set tOK.caption="Save"
 
 	Quit $$$OK
 }
@@ -74,7 +72,7 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var emails=zen('Emails').getValue();
 		var pivot=this.pivotName;
 		
-		var status=zenPage.AddAlert(subscriptionid,pivot,frequency,emails,format);
+		var status=zenPage.EditSubscription(subscriptionid,pivot,frequency,emails,format);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -87,19 +85,19 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method AddAlert(pSubscriptionId,pPivot, pFrequency, pEmails, pFormat) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId,pPivot, pFrequency, pEmails, pFormat) As %Status [ ZenMethod ]
 {
 	If pSubscriptionId'=0 {
-		Set tAlert=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
+		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
 	} Else {
-		Set tAlert=##class(PivotSubscriptions.Subscription).%New()
-		Set tAlert.CreatedBy=$username
-		Set tAlert.Pivot=pPivot
+		Set tSubscription=##class(PivotSubscriptions.Subscription).%New()
+		Set tSubscription.CreatedBy=$username
+		Set tSubscription.Pivot=pPivot
 	}
-	Set tAlert.Frequency=pFrequency
-	Set tAlert.Format=pFormat
-	Set tAlert.Emails=pEmails
-	Quit tAlert.%Save()
+	Set tSubscription.Frequency=pFrequency
+	Set tSubscription.Format=pFormat
+	Set tSubscription.Emails=pEmails
+	Quit tSubscription.%Save()
 }
 
 }
