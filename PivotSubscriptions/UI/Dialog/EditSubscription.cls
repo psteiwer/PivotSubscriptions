@@ -13,6 +13,8 @@ Parameter DOMAIN;
 
 Property pivotName As %ZEN.Datatype.string(ZENURL = "PIVOTNAME");
 
+Property SubscriptionId As %ZEN.Datatype.integer(ZENURL = "SUBSCRIPTIONID");
+
 Parameter APPLYBUTTON = 0;
 
 /// This Style block contains page-specific CSS style definitions.
@@ -27,6 +29,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane xmlns="http://www.intersystems.com/zen" title="">
 <label id="Label" label="Edit subscription for "/>
+<text id="SubscriptionId" value="0" hidden="true"/>
 <radioSet id="Frequency" label="Frequency" displayList="Daily,Weekly" valueList="1,7" value="1"/>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
 <textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses. '@intersystems.com' appended if no domain supplied."/>
@@ -42,6 +45,14 @@ Method %OnGetTitle() As %String
 
 Method %OnAfterCreatePage() As %Status
 {
+	If ..SubscriptionId'=0 {
+		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(..SubscriptionId)
+		Set ..%GetComponentById("SubscriptionId").value=..SubscriptionId
+		Set ..%GetComponentById("Frequency").value=tSubscription.Frequency
+		Set ..%GetComponentById("Format").value=tSubscription.Format
+		Set ..%GetComponentById("Emails").value=tSubscription.Emails
+	}
+
 	Set tLabel = ..%GetComponentById("Label")
 	Set tLabel.label="Add alert for """_$ZCONVERT(..pivotName,"I","HTML")_""
 
@@ -57,12 +68,13 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 {
 	try {
 		
+		var subscriptionid=zen('SubscriptionId').getValue();
 		var frequency=zen('Frequency').getValue();
 		var format=zen('Format').getValue();
 		var emails=zen('Emails').getValue();
 		var pivot=this.pivotName;
 		
-		var status=zenPage.AddAlert(pivot,frequency,emails,format);
+		var status=zenPage.AddAlert(subscriptionid,pivot,frequency,emails,format);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -75,11 +87,15 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method AddAlert(pPivot, pFrequency, pEmails, pFormat) As %Status [ ZenMethod ]
+Method AddAlert(pSubscriptionId,pPivot, pFrequency, pEmails, pFormat) As %Status [ ZenMethod ]
 {
-	Set tAlert=##class(PivotSubscriptions.Subscription).%New()
-	Set tAlert.CreatedBy=$username
-	Set tAlert.Pivot=pPivot
+	If pSubscriptionId'=0 {
+		Set tAlert=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
+	} Else {
+		Set tAlert=##class(PivotSubscriptions.Subscription).%New()
+		Set tAlert.CreatedBy=$username
+		Set tAlert.Pivot=pPivot
+	}
 	Set tAlert.Frequency=pFrequency
 	Set tAlert.Format=pFormat
 	Set tAlert.Emails=pEmails
