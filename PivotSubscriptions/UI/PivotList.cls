@@ -24,8 +24,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	OnExecuteResultSet="ExecuteRS"
 	>
 <column id="Owner" header="Owner" colName="POwner" width="10%" filterType="text"/>
-<column id="Name" header="Name" colName="PName" width="50%" filterType="text" />
-<column id="View" header="View in Analyzer" colName="PView" width="30%" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.PView)#"/>
+<column id="Name" header="Name" colName="PName" width="30%" filterType="text" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.PName)#"/>
 <column OnDrawCell="DrawAddSubscriptionLink"/>
 </tablePane>
 </pane>
@@ -49,7 +48,7 @@ ClassMethod DrawAddSubscriptionLink(pTable As %ZEN.Component.tablePane, pName As
 	Quit $$$OK
 }
 
-Query GetPivots(pOwner As %String = "", pName As %String = "") As %Query(ROWSPEC = "POwner:%String,PName:%String,PView:%String,PSubscription:%String")
+Query GetPivots(pOwner As %String = "", pName As %String = "") As %Query(ROWSPEC = "POwner:%String,PName:%String,PSubscription:%String")
 {
 }
 
@@ -88,7 +87,7 @@ ClassMethod GetPivotsFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef A
 	    Quit $$$OK
     }
 	
-	Set Row=$lb($LG(^||PivotSubscriptions.getPivotExecute(qHandle),10),$LG(^||PivotSubscriptions.getPivotExecute(qHandle),1),$ZCONVERT($LG(^||PivotSubscriptions.getPivotExecute(qHandle),1),"O","HTML"),"Subscription")
+	Set Row=$lb($LG(^||PivotSubscriptions.getPivotExecute(qHandle),10),$LG(^||PivotSubscriptions.getPivotExecute(qHandle),1),"Subscription")
     Set AtEnd=0
     
     Quit $$$OK
