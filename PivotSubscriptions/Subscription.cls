@@ -5,7 +5,7 @@ Property CreatedBy As %String;
 
 Property Pivot As %String;
 
-Property DayOfWeek As List Of %Integer (DISPLAYLIST = ",Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday", VALUELIST=",0,1,2,3,4,5,6");
+Property DayOfWeek As %String;
 
 Property Hour As %Integer(MINVAL=0, MAXVAL=23);
 
