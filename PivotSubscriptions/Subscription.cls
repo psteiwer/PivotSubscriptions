@@ -3,7 +3,7 @@ Class PivotSubscriptions.Subscription Extends %Persistent
 
 Property CreatedBy As %String;
 
-Property Pivot As %String;
+Property Pivot As %String(MAXLEN="");
 
 Property DayOfWeek As %String;
 
