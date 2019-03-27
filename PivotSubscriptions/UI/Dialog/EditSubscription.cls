@@ -29,7 +29,11 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <pane xmlns="http://www.intersystems.com/zen" title="">
 <label id="Label" label="Edit subscription for "/>
 <text id="SubscriptionId" value="0" hidden="true"/>
-<radioSet id="Frequency" label="Frequency" displayList="Daily,Weekly" valueList="1,7" value="1"/>
+<multiSelectSet id="DayOfWeek" label="Day(s) Of Week" layout="horizontal" displayList="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" valueList="0,1,2,3,4,5,6"/>
+<hgroup>
+	<select id="Hour" label="Hour" displayList="00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23" valueList="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"/>
+	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45"/>
+</hgroup>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
 <textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses. '@intersystems.com' appended if no domain supplied."/>
 </pane>
@@ -46,7 +50,9 @@ Method %OnAfterCreatePage() As %Status
 	If ..SubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(..SubscriptionId)
 		Set ..%GetComponentById("SubscriptionId").value=..SubscriptionId
-		Set ..%GetComponentById("Frequency").value=tSubscription.Frequency
+		Set ..%GetComponentById("DayOfWeek").value=tSubscription.DayOfWeek
+		Set ..%GetComponentById("Hour").value=tSubscription.Hour
+		Set ..%GetComponentById("Minute").value=tSubscription.Minute
 		Set ..%GetComponentById("Format").value=tSubscription.Format
 		Set ..%GetComponentById("Emails").value=tSubscription.Emails
 	}
@@ -67,12 +73,14 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 	try {
 		
 		var subscriptionid=zen('SubscriptionId').getValue();
-		var frequency=zen('Frequency').getValue();
+		var dayofweek=zen('DayOfWeek').getValue();
+		var hour=zen('Hour').getValue();
+		var minute=zen('Minute').getValue();
 		var format=zen('Format').getValue();
 		var emails=zen('Emails').getValue();
 		var pivot=this.pivotName;
 		
-		var status=zenPage.EditSubscription(subscriptionid,pivot,frequency,emails,format);
+		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -85,7 +93,7 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method EditSubscription(pSubscriptionId,pPivot, pFrequency, pEmails, pFormat) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId,pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat) As %Status [ ZenMethod ]
 {
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
@@ -94,7 +102,9 @@ Method EditSubscription(pSubscriptionId,pPivot, pFrequency, pEmails, pFormat) As
 		Set tSubscription.CreatedBy=$username
 		Set tSubscription.Pivot=pPivot
 	}
-	Set tSubscription.Frequency=pFrequency
+	Set tSubscription.DayOfWeek=pDayOfWeek
+	Set tSubscription.Hour=pHour
+	Set tSubscription.Minute=pMinute
 	Set tSubscription.Format=pFormat
 	Set tSubscription.Emails=pEmails
 	Quit tSubscription.%Save()
