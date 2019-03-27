@@ -54,7 +54,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFrequency As %Inte
 		Set pParms("TITLE")=$E(pPivot,1,*-6)
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
-		Set filename=$replace($E(pPivot,1,*-6)_" - "_$zd($h,6),"/","-")_".xls"
+		Set filename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 	
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(filename,.pParms)
 	}
@@ -99,6 +99,47 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFrequency As %Inte
 		}
 	}
 	
+	Quit tSC
+}
+
+/// This method is called each time a new subscription is created. It will create or update the task as needed
+ClassMethod ConfigureTask() As %Status
+{
+	Set tSC=$$$OK
+	//Does task exist? If so, update. Else, create
+	Set tFullName=..#TaskName_" - "_$NAMESPACE
+	Set tTaskID=##class(%SYS.Task).FindId(tFullName)
+	If tTaskID="" {
+		// Task is not present, need to create one
+		Set tTask=##class(%SYS.Task).%New()
+		Set tTask.Name=tFullName
+		Set tTask.NameSpace=$NAMESPACE
+	} Else {
+		// Task has already been defined
+		Quit tSC
+	}
+	
+	Set tTask.TaskClass="PivotSubscriptions.Task"
+	Set tTask.RunAsUser="_SYSTEM"
+	Set tTask.Description="Executes PivotSubscriptions Task"
+	
+	// Set schedule according to passed in parameters
+	Set tTask.TimePeriod=0			
+	Set tTask.TimePeriodEvery=1 	
+	Set tTask.TimePeriodDay=""
+	
+	// Build runs at most once every day
+	Set tTask.DailyFrequency=1
+	Set tTask.DailyFrequencyTime=0
+	Set tTask.DailyIncrement=15
+	Set tTask.DailyStartTime=0
+	Set tTask.DailyEndTime=0
+	
+	// The task should be operational at the next available build time
+	Set tSC=tTask.StartDateSet(+$h)
+	If $$$ISERR(tSC) Quit
+		
+	Set tSC=tTask.%Save()
 	Quit tSC
 }
 
