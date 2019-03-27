@@ -54,7 +54,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFrequency As %Inte
 		Set pParms("TITLE")=$E(pPivot,1,*-6)
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
-		Set filename=$replace($E(pPivot,1,*-6)_" - "_$zd($h,6),"/","-")_".xls"
+		Set filename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 	
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(filename,.pParms)
 	}
