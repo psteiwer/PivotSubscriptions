@@ -9,7 +9,7 @@ Property DayOfWeek As List Of %Integer (DISPLAYLIST = ",Sunday,Monday,Tuesday,We
 
 Property Hour As %Integer(MINVAL=0, MAXVAL=23);
 
-Property Minue As %Integer (VALUELIST=",0,15,30,45");
+Property Minute As %Integer (VALUELIST=",0,15,30,45");
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
@@ -34,7 +34,7 @@ Storage Default
 <Value>Hour</Value>
 </Value>
 <Value name="6">
-<Value>Minue</Value>
+<Value>Minute</Value>
 </Value>
 <Value name="7">
 <Value>Format</Value>
