@@ -5,7 +5,11 @@ Property CreatedBy As %String;
 
 Property Pivot As %String;
 
-Property Frequency As %Integer(DISPLAYLIST = ",Daily,Weekly", VALUELIST = ",1,7");
+Property DayOfWeek As List Of %Integer (DISPLAYLIST = ",Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday", VALUELIST=",0,1,2,3,4,5,6");
+
+Property Hour As %Integer(MINVAL=0, MAXVAL=23);
+
+Property Minue As %Integer (VALUELIST=",0,15,30,45");
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
@@ -24,12 +28,18 @@ Storage Default
 <Value>Pivot</Value>
 </Value>
 <Value name="4">
-<Value>Frequency</Value>
+<Value>DayOfWeek</Value>
 </Value>
 <Value name="5">
-<Value>Format</Value>
+<Value>Hour</Value>
 </Value>
 <Value name="6">
+<Value>Minue</Value>
+</Value>
+<Value name="7">
+<Value>Format</Value>
+</Value>
+<Value name="8">
 <Value>Emails</Value>
 </Value>
 </Data>
