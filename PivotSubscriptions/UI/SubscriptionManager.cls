@@ -34,7 +34,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	maxRows="5000"
 	valueColumn="ID"
 	>
-<column colName="ID" header="Subscription ID" />
+<column colName="ID" header="Subscription ID" hidden="true" />
 <column id="Pivot" header="Pivot" colName="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#"/>
 <column colName="Emails" header="Emails" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
