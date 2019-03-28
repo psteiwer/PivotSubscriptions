@@ -35,7 +35,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	valueColumn="ID"
 	>
 <column colName="ID" header="Subscription ID" />
-<column colName="Pivot" header="Pivot" />
+<column id="Pivot" header="Pivot" colName="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#"/>
 <column colName="Emails" header="Emails" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
 <column onclick="return zenPage.deleteSubscription('#(%query.ID)#');" linkCaption="Delete" link="#" />
@@ -92,7 +92,7 @@ ClientMethod editSubscription(subscriptionId,pivotName) [ Internal, Language = j
 			MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+subscriptionId+'&PIVOTNAME='+pivotName,'PivotSubscriptions','status,resizable=yes,width=900,height=700',parms);
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+subscriptionId+'&PIVOTNAME='+pivotName,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
 }
 
 /// Delete the selected subscription.
