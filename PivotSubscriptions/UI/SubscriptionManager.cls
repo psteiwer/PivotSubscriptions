@@ -3,8 +3,6 @@ Include %DeepSee
 Class PivotSubscriptions.UI.SubscriptionManager Extends PivotSubscriptions.UI.Template [ System = 4 ]
 {
 
-Parameter DOMAIN = "PivotSubscriptions";
-
 /// Displayed name of this page.
 Parameter PAGENAME = "Subscription Manager";
 

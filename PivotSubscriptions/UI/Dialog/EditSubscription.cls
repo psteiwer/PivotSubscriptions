@@ -7,8 +7,7 @@ Parameter APPLICATION;
 /// Displayed name of this page.
 Parameter PAGENAME;
 
-/// Domain used for localization.
-Parameter DOMAIN;
+Parameter DOMAIN = "PivotSubscriptions";
 
 Property pivotName As %ZEN.Datatype.string(ZENURL = "PIVOTNAME");
 
