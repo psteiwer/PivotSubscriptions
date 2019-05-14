@@ -1,6 +1,6 @@
 Include %DeepSee
 
-Class PivotSubscriptions.UI.SubscriptionManager Extends %DeepSee.UI.standardPage [ System = 4 ]
+Class PivotSubscriptions.UI.SubscriptionManager Extends PivotSubsctiptions.UI.Template [ System = 4 ]
 {
 
 Parameter DOMAIN = "PivotSubscriptions";
@@ -8,7 +8,7 @@ Parameter DOMAIN = "PivotSubscriptions";
 Parameter Version = 1;
 
 /// Displayed name of this page.
-Parameter PAGENAME = "Pivot Subscriptions Manager";
+Parameter PAGENAME = "Subscription Manager";
 
 /// If this page has multiple views, this is its initial display mode.
 Parameter DEFAULTVIEWMODE;
@@ -48,13 +48,13 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 /// Get the (localized) title string for the page.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$Text("Pivot Subscriptions Manager","PivotSubscriptions")
+	Quit $$$Text("Subscription Manager","PivotSubscriptions")
 }
 
 /// Get the (localized) name of the page.
 Method %OnGetPageName() As %String [ Internal ]
 {
-	Quit $$$Text("Pivot Subscriptions Manager","PivotSubscriptions")
+	Quit $$$Text("Subscription Manager","PivotSubscriptions")
 }
 
 /// Get the product name for the page.

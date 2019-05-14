@@ -2,11 +2,11 @@ Include %DeepSee
 
 /// DeepSee CSV Import page.
 /// This page lets you import data from a CSV file into DeepSee.
-Class PivotSubscriptions.UI.PivotList Extends %DeepSee.UI.standardPage [ System = 4 ]
+Class PivotSubscriptions.UI.PivotList Extends PivotSubsctiptions.UI.Template [ System = 4 ]
 {
 
 /// Displayed name of this page.
-Parameter PAGENAME = "PivotSubscriptions Pivot List";
+Parameter PAGENAME = "Pivot List";
 
 /// This XML block defines the contents of this pane.
 XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
