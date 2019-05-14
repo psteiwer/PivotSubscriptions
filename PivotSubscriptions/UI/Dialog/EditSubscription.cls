@@ -34,7 +34,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45"/>
 </hgroup>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
-<textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses. '@intersystems.com' appended if no domain supplied."/>
+<textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses."/>
 </pane>
 }
 
