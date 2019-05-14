@@ -1,4 +1,4 @@
-Class PivotSubsctiptions.UI.Template Extends %DeepSee.UI.standardPage
+Class PivotSubscriptions.UI.Template Extends %DeepSee.UI.standardPage
 {
 
 /// Get information to display in the ribbon bar.

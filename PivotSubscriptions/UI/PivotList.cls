@@ -2,7 +2,7 @@ Include %DeepSee
 
 /// DeepSee CSV Import page.
 /// This page lets you import data from a CSV file into DeepSee.
-Class PivotSubscriptions.UI.PivotList Extends PivotSubsctiptions.UI.Template [ System = 4 ]
+Class PivotSubscriptions.UI.PivotList Extends PivotSubscriptions.UI.Template [ System = 4 ]
 {
 
 /// Displayed name of this page.
