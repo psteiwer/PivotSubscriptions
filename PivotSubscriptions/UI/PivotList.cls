@@ -1,32 +1,39 @@
 Include %DeepSee
 
-/// DeepSee CSV Import page.
-/// This page lets you import data from a CSV file into DeepSee.
-Class PivotSubscriptions.UI.PivotList Extends %DeepSee.UI.standardPage [ System = 4 ]
+Class PivotSubscriptions.UI.PivotList Extends PivotSubscriptions.UI.Template [ System = 4 ]
 {
 
 /// Displayed name of this page.
-Parameter PAGENAME = "PivotSubscriptions Pivot List";
+Parameter PAGENAME = "Pivot List";
 
 /// This XML block defines the contents of this pane.
 XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane xmlns="http://www.intersystems.com/zen">
+<hgroup valign="top" >
+<spacer width="20" />
+<vgroup valign="top" >
+<spacer height="20" />
 <tableNavigatorBar id="tableNavigator" tablePaneId="tablePane" showPageSize="true" />
 <tablePane id="tablePane" 
-	fixedHeaders="true" 
-	dataSource="columns" 
-	pageSize="100" 
-	maxRows="1000" 
-	useSnapshot="true" 
+    cellSpacing="2"
+	fixedHeaders="false" 
 	queryClass="PivotSubscriptions.UI.PivotList" 
 	queryName="GetPivots" 
+	useSnapshot="true" 
+	showQuery="false"
+	showZebra="true"
+	showRowNumbers="false"
+	pageSize="100" 
+	maxRows="1000" 
 	OnExecuteResultSet="ExecuteRS"
 	>
-<column id="Owner" header="Owner" colName="POwner" width="10%" filterType="text"/>
-<column id="Name" header="Name" colName="PName" width="30%" filterType="text" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.PName)#"/>
-<column OnDrawCell="DrawAddSubscriptionLink"/>
+<column id="Owner" header="Owner" colName="POwner" filterType="text"/>
+<column id="Name" header="Name" colName="PName" filterType="text" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.PName)#"/>
+<column id="Subscription" header="Add Subscription" colName="PSubscription" OnDrawCell="DrawAddSubscriptionLink"/>
 </tablePane>
+</vgroup>
+</hgroup>
 </pane>
 }
 

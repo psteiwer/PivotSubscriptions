@@ -1,20 +1,12 @@
 Include %DeepSee
 
-Class PivotSubscriptions.UI.SubscriptionManager Extends %DeepSee.UI.standardPage [ System = 4 ]
+Class PivotSubscriptions.UI.SubscriptionManager Extends PivotSubscriptions.UI.Template [ System = 4 ]
 {
 
-Parameter DOMAIN = "PivotSubscriptions";
-
-Parameter Version = 1;
-
 /// Displayed name of this page.
-Parameter PAGENAME = "Pivot Subscriptions Manager";
+Parameter PAGENAME = "Subscription Manager";
 
-/// If this page has multiple views, this is its initial display mode.
-Parameter DEFAULTVIEWMODE;
-
-Parameter DOCBOOKID;
-
+/// This XML block defines the contents of this pane.
 XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane xmlns="http://www.intersystems.com/zen">
@@ -22,6 +14,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <spacer width="20" />
 <vgroup valign="top" >
 <spacer height="20" />
+<tableNavigatorBar id="tableNavigator" tablePaneId="table" showPageSize="true" />
 <tablePane id="table"
     cellSpacing="2"
 	fixedHeaders="false"	
@@ -31,10 +24,11 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	showQuery="false"
 	showZebra="true"
 	showRowNumbers="false"
-	maxRows="5000"
+	pageSize="100" 
+	maxRows="1000"
 	valueColumn="ID"
 	>
-<column colName="ID" header="Subscription ID" />
+<column colName="ID" header="Subscription ID" hidden="true" />
 <column id="Pivot" header="Pivot" colName="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#"/>
 <column colName="Emails" header="Emails" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
@@ -48,13 +42,13 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 /// Get the (localized) title string for the page.
 Method %OnGetTitle() As %String [ Internal ]
 {
-	Quit $$$Text("Pivot Subscriptions Manager","PivotSubscriptions")
+	Quit $$$Text("Subscription Manager","PivotSubscriptions")
 }
 
 /// Get the (localized) name of the page.
 Method %OnGetPageName() As %String [ Internal ]
 {
-	Quit $$$Text("Pivot Subscriptions Manager","PivotSubscriptions")
+	Quit $$$Text("Subscription Manager","PivotSubscriptions")
 }
 
 /// Get the product name for the page.
