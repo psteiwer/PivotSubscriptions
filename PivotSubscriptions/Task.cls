@@ -11,20 +11,21 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
-	Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+	Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
 	
 	// Loop through Subscription results and send emails.
 	While tRS.%Next() {
 		Set tEmails=tRS.%Get("Emails")
 		Set tPivot=tRS.%Get("Pivot")
+		Set tFormat=tRS.%Get("Format")
 		
-		Do ..SendEmail(tPivot,tEmails)
+		Do ..SendEmail(tPivot,tEmails,tFormat)
 	}
 	
 	Quit tSC
 }
 
-ClassMethod SendEmail(pPivot As %String, pEmails As %String) As %Status
+ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
@@ -52,15 +53,13 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String) As %Status
 		
 		// if based on if pdf or excel is selected, change filename accordingly
 		
-		Set filename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
-	
-		/*
-		 * Lookup pParms and read documentation on Task if any
-		 * Lookup filename $replace and $zstrip function
-		 * Lookup %ExportExcelToFile
-		*/
-	
-		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(filename,.pParms)
+		if (pFormat = Excel) {
+			Set filename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+			Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(filename,.pParms)
+		} else {
+			Set filename = $replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".pdf"
+			Set tsc=##class(%DeepSee.Utils).%ExportPDFToFile(filename,.pParms)
+		}
 	}
 
 	// Generate email
