@@ -28,6 +28,7 @@ Method OnTask() As %Status
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
+	Set filename = ""
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	
 	// Execute MDX to see if there are results
@@ -53,7 +54,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		
 		// if based on if pdf or excel is selected, change filename accordingly
 		
-		if (pFormat = Excel) {
+		if (pFormat = "Excel") {
 			Set filename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 			Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(filename,.pParms)
 		} else {
