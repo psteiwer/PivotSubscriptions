@@ -49,7 +49,16 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String) As %Status
 		Set pParms("TITLE")=$E(pPivot,1,*-6)
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
+		
+		// if based on if pdf or excel is selected, change filename accordingly
+		
 		Set filename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+	
+		/*
+		 * Lookup pParms and read documentation on Task if any
+		 * Lookup filename $replace and $zstrip function
+		 * Lookup %ExportExcelToFile
+		*/
 	
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(filename,.pParms)
 	}
