@@ -25,10 +25,19 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
+// Write improved email format for subscription
+ClassMethod WriteEmail(msg As %Net.MailMessage) {
+	Do msg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}table#footer{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head><body><table class='center'><tr><td><table><tr><td>&nbsp;</td></tr><tr><td><img src='https://i.imgur.com/6jM3RRX.png' width = 100%/></td></tr></table></td></tr><tr><td>")
+	Do msg.TextData.WriteLine("<table><tr><td>"_title_"</td></tr><tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr>")
+	Do msg.TextData.WriteLine("<tr><td>Attached is your pivot table from your weekly subscription from <b><a href=''>Subscriptions Manager</a></b>. </td></tr><tr><td>&nbsp;</td></tr><tr><td>You can edit the time and format <i><a href=''>here</a></i>.</td></tr><tr><td>You can unsubscribe by clicking <i>here</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
+	Do msg.TextData.WriteLine("<table id='footer'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&copy; 2019<b>Intersystems Corporation</b></td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One Memorial Drive, Cambridge, MA 02142. </td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
+}
+
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
 	Set filename = ""
+	Set title = ""
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	
 	// Execute MDX to see if there are results
@@ -48,7 +57,8 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 	
 	// Only generate file if requested pivot has results
 	If tHasResults {
-		Set pParms("TITLE")=$E(pPivot,1,*-6)
+		Set title = $E(pPivot,1,*-6)
+		Set pParms("TITLE")=title
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
 		
@@ -78,11 +88,12 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		// Remove ".pivot" extension for subject
 		Set msg.Subject=$E(pPivot,1,*-6)
 		Set msg.IsBinary=0
-		Set msg.IsHTML=0
+		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
-			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
-
+			Do msg.TextData.WriteLine("<b>Attached is the requested Pivot.</b>")
+			Do ..WriteEmail(msg)
+			
 			// Add attachment
 			Set status=msg.AttachFile("",filename)
 			If $$$ISERR(status) 
@@ -146,5 +157,4 @@ ClassMethod ConfigureTask() As %Status
 	Set tSC=tTask.%Save()
 	Quit tSC
 }
-
 }
