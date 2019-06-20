@@ -30,5 +30,5 @@ In order for the Task of sending scheduled emails to be initalized or updated, t
 ```
 3. Optionally, you can write the status to Terminal output to verify the task was initalized. Note, if the task was already initalized and the command was run again to cause the Task to update, the status will return 1 regardless of whether the update failed or succeeded. 
 ```
-write status
+	write status
 ```
