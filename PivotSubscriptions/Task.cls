@@ -25,20 +25,7 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
-// Write improved email format for subscription
-ClassMethod WriteEmail(pMsg As %Net.MailMessage, pTitle As %String) {
-	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}table.border{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head>")
-	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
-	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr><tr><td><img src='https://i.imgur.com/6jM3RRX.png' width = 100%/></td></tr></table></td></tr><tr><td>")
-	Do pMsg.TextData.WriteLine("<table><tr><td><p style='font-size:1.2em;'><b>"_pTitle_"</b></p></td></tr><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>Attached is your pivot table from your weekly subscription from <b><a href=''>Subscriptions Manager</a></b>. </td></tr><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage (edit days of the week/time/format/recipients and delete) your subscriptions <i><a href='http://localhost:52773/csp/user/PivotSubscriptions.UI.SubscriptionManager.zen'>here</a></i>.</td></tr><tr><td>You can unsubscribe by clicking <i>here</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
-	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&copy;&nbsp;2019&nbsp;<b>Intersystems Corporation</b></td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One Memorial Drive, Cambridge, MA 02142</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
-}
-
 // unit test manager
-
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
@@ -64,7 +51,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 	// Only generate file if requested pivot has results
 	If tHasResults {
 		Set tTitle = $E(pPivot,1,*-6)
-		Set pParms("TITLE")=title
+		Set pParms("TITLE")=tTitle
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
 		
@@ -97,7 +84,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
-			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tTitle)
+			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
 			
 			// Add attachment
 			Set status=msg.AttachFile("",tFilename)
@@ -162,4 +149,240 @@ ClassMethod ConfigureTask() As %Status
 	Set tSC=tTask.%Save()
 	Quit tSC
 }
+
+/*
+ * Modify print method of DeepSee to output to String instead of console
+*/
+Method %PrintString(Output pStats, pShowNodeNo As %Boolean = 0, pMaxRows As %Integer = 0) As %Status
+{
+	Set tSC = $$$OK
+	Try {
+		If ((%DeepSee.ResultSet.%Query.queryType = "CREATE")||(%DeepSee.ResultSet.queryType = "DROP")) {
+			Quit
+		}
+
+		// wait a small time in case a background has not yet reported a error
+		Hang 0.01
+
+		Set pMaxRows = $S(pMaxRows>10:pMaxRows-10,1:0)
+
+		Set tError = $G($$$DeepSeeResultsGLVN(%DeepSee.ResultSet.%CubeKey,%DeepSee.ResultSet.%QueryKey,"error"))
+		If (tError'="") {
+			Set tSC = tError
+		}
+
+		If $$$ISERR(tSC) {
+			Do $System.Status.DisplayError(tSC)
+			W !
+			Set tSC = $$$OK
+			Quit
+		}
+
+		Set tStatus = %DeepSee.ResultSet.%GetQueryStatus(%DeepSee.ResultSet.%Cube,%DeepSee.ResultSet.%QueryKey)
+		If (tStatus < 100) {
+			Write $$$Text("Result has errors or is not ready to be printed. Status: ","%DeepSee"),tStatus,!
+			Quit
+		}
+		Set tAxisCount = ..%GetAxisCount()
+		Set tShowNodeNums = pShowNodeNo
+
+		If (%DeepSee.ResultSet.%Query.queryType = "DRILLTHROUGH") {
+			Do %DeepSee.ResultSet.%PrintListing()
+			If (%DeepSee.ResultSet.%Query.showPlan) {
+				Do ..%ShowPlan()
+			}
+			Quit
+		}
+
+		// test for default format
+		Set tDefFormat = $G($$$DeepSeeResultsGLVN(..%CubeKey,..%QueryKey,"format"))
+
+		If (tAxisCount=0) {
+			// single value answer
+			Set tValue = ..%GetValue()
+			Set tCellWidth = 20
+			Write $$$Text("Result","%DeepSee"),":"
+			// JMD1412
+			If ((tValue'="")&&(tDefFormat'="")) {
+				Write $J(%DeepSee.ResultSet.%FormatNumber(tValue,tDefFormat),tCellWidth),!
+			}
+			Else {
+				Write $J($S(tValue="":"*",tValue'=+tValue:tValue,1:$FN(tValue,",")),tCellWidth),!
+			}
+			If (%DeepSee.ResultSet.%Query.showPlan) {
+				Do %DeepSee.ResultSet.%ShowPlan()
+			}
+			Quit
+		}
+
+		For a = 1:1:tAxisCount {
+			Set tAxisSize(a) = %DeepSee.ResultSet.%GetAxisSize(a)
+			Set tAxisIsSearch(a) = %DeepSee.ResultSet.Query.axes.GetAt(a).%IsSearch()		// DTB141
+		}
+
+		Set tVolume = %DeepSee.ResultSet.%GetCellCount(..%CubeKey,..%QueryKey,.tSC)
+		If $$$ISERR(tSC) {
+			Do $System.Status.DisplayError(tSC)
+			Quit
+		}
+
+		// Get row and column info
+		Set tStart = $ZH
+		Set tColCount = +$G(tAxisSize(1))
+
+		If ((tVolume = 0)||(tColCount=0)) {
+			Write $$$Text("ResultSet has found no results","%DeepSee"),!
+			// Write "Volume: ",tVolume,?20,"Columns: ",tColCount,!
+			If (%DeepSee.ResultSet.%Query.showPlan) {
+				Do %DeepSee.ResultSet.%ShowPlan()
+			}
+			Quit
+		}
+
+		// JMD1406: if we have a 3rd axis, pick up its format
+		Set tZCount = +$G(tAxisSize(3))
+		If (tZCount>0) {
+			Set z = ..%GetOrdinalLabel(.tZNames,3,1,.tZFormat,.tZSolveOrder)
+			Set tDefFormat = tZFormat
+		}
+
+		// column headers
+		For c=1:1:$G(tAxisSize(1)) {
+			Set tLabelCount = ..%GetOrdinalLabel(.tNames,1,c,.tFormat,.tSolveOrder)
+			Set tName = $G(tNames(1))
+			Set:tFormat'="" tColFormat(c) = tFormat
+			Set:tSolveOrder>0 tColSolveOrder(c) = tSolveOrder
+			If (tShowNodeNums) {
+				Set tColNodes(c) = $G($$$DeepSeeResultsGLVN(..%CubeKey,..%QueryKey,"leaf",1,c))
+			}
+			Set tColNames(c) = tName
+		}
+
+		Set tHasRows = 1
+		Set tRowCount = +$G(tAxisSize(2))
+		If (tRowCount < 1) {
+			Set tHasRows = 0
+			Set tRowCount = 1
+		}
+
+		Set tLblWidth = 18
+		Set tTotal = 0
+		Set tCells = 0
+		Set tEmptyCells = 0
+
+		Set tHasOverride = ..%HasCellFormatOverride()
+
+		// print
+		Set tDisplayedColCount = tColCount
+		Set tTruncated = 0
+		If (tDisplayedColCount > 6) {
+			Set tDisplayedColCount = 6
+			Set tTruncated = 1
+		}
+		If (tDisplayedColCount = 1) {
+			Set tLblWidth = 24
+		}
+		Set tCellWidth = (80 \ (tDisplayedColCount + 1)) - 4
+		Set:tCellWidth>18 tCellWidth = 18 
+		For c = 1:1:tDisplayedColCount {
+			Set tName = $E(tColNames(c),1,tCellWidth-$S(tShowNodeNums:4,1:0)) _ $S(tShowNodeNums:"["_tColNodes(c)_"]",1:"")
+			Write ?(c-1)*(tCellWidth+3)+tLblWidth,$J(tName,tCellWidth)
+		}
+		Write:tTruncated ?76,"..."
+		Write !
+
+		// how many digits are needed for row #
+		Set tRowDigits = 0
+		If (tRowCount>1) {
+			Set tRowDigits = (1+$ZLOG(tRowCount))\1
+			Set tLblWidth = tLblWidth - tRowDigits
+		}
+
+		Set tRowsSkipped = 0
+		For r = 1:1:tRowCount {
+			Set tRowSolveOrder = 0
+			Set tName = ""		// DTB141
+			If (tHasRows) {
+				Set tLabelCount = ..%GetOrdinalLabel(.tLabels,2,r,.tRowFormat,.tRowSolveOrder)
+				For n=tLabelCount:-1:1 {
+					Set tName = tName _ $S(tName="":"",1:"->")_ tLabels(n)
+				}
+			}
+			ElseIf tAxisIsSearch(1) {		// DTB141
+				Set tName = $$$Text("Results","%DeepSee")
+			}
+			
+			Set tCells = tCells + tColCount
+			If (pMaxRows>0) {
+				If ((r > pMaxRows)&&('tRowsSkipped)) {
+					Write ".......","rows not displayed",".......",!
+					Set tRowsSkipped = 1
+					Continue
+				}
+				ElseIf ((r > pMaxRows)&&(r < (tRowCount-10))) {
+					// show last 10 rows
+					Continue
+				}
+			}
+
+			Set tName = $E(tName,1,$S(tShowNodeNums:tLblWidth-4,1:tLblWidth))
+			If (tShowNodeNums) {
+				Set tName = tName _ "[" _ $G($$$DeepSeeResultsGLVN(..%CubeKey,..%QueryKey,"leaf",2,r)) _ "]"
+			}
+			// Show row # as well
+			Write:tRowDigits>0 $J(r,tRowDigits)," "
+			Write tName
+			For c = 1:1:tDisplayedColCount {
+				Set tValue = $Case(tAxisCount,
+					1:..%GetOrdinalValue(c),
+					:..%GetOrdinalValue(c,r))
+
+				If (+$G(tColSolveOrder(c))>=+tRowSolveOrder) {
+					Set tFormat = $S($G(tColFormat(c))'="":tColFormat(c),$G(tRowFormat)'="":tRowFormat,1:tDefFormat)
+				}
+				Else {
+					Set tFormat = $S($G(tRowFormat)'="":tRowFormat,$G(tColFormat(c))'="":tColFormat(c),1:tDefFormat)
+				}
+
+				// JMD988 Test for format override
+				If ((tAxisCount>1) && tHasOverride) {
+					Set tFO = ..%GetCellFormatOverride(c,r)
+					Set:tFO'="" tFormat = tFO
+				}
+
+				Set tTotal = tTotal + tValue
+				Set:tValue="" tEmptyCells = tEmptyCells + 1
+
+				If (tFormat'="") {
+					Write ?(c-1)*(tCellWidth+3)+tLblWidth+tRowDigits+1,$J($S(tValue="":"*",tValue'=+tValue:tValue,1:..%FormatNumber(tValue,tFormat)),tCellWidth)
+				}
+				Else {
+					Write ?(c-1)*(tCellWidth+3)+tLblWidth+tRowDigits+1,$J($S(tValue="":"*",tValue'=+tValue:tValue,tValue'=(tValue\1):$FN(tValue,",",2),1:$FN(tValue,",")),tCellWidth)
+				}
+			}
+			Write:tTruncated ?76,"..."
+			Write !
+		}
+
+		Set pStats("cells") = tCells
+		Set pStats("empty") = tEmptyCells
+		Set pStats("total") = tTotal
+		Set %DeepSee.ResultSet.%Statistics("Cells") = tCells
+		Set %DeepSee.ResultSet.%Statistics("Print") = $ZH - tStart
+
+		If (%DeepSee.ResultSet.%Query.showPlan) {
+			Do %DeepSee.ResultSet.%ShowPlan()
+		}
+	}
+	Catch(ex) {
+		Set tSC = ex.AsStatus()
+	}
+	If $$$ISERR(tSC) {
+		Do $System.Status.DisplayError(tSC)
+	}
+	Quit tSC
+}
+
+
+
 }
