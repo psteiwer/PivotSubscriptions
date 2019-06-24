@@ -25,7 +25,6 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
-// unit test manager
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
