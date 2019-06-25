@@ -125,6 +125,8 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
 			}
+			
+			Set status=msg.AttachFile("",tFilename)
 
 			If $$$ISERR(status) 
 			{
