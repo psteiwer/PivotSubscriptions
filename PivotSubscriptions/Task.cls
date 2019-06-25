@@ -11,7 +11,14 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
-	Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+	If $G(^PivotSubscriptions.Settings("TestEnv")) {
+		// Ignore minute for testing purposes
+		// This will allow the task to be run on demand and send emails immediately
+		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
+	} Else {
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+	}
 	
 	// Loop through Subscription results and send emails.
 	While tRS.%Next() {
