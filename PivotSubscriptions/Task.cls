@@ -26,7 +26,7 @@ Method OnTask() As %Status
 }
 
 // Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pMsg As %Net.MailMessage, pTitle As %String, pFilename As %String) {
+ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
 	Do pMsg.TextData.WriteLine("table.border{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head>")
 	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
@@ -57,7 +57,7 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pTitle As %String, pFilename As
 	}
 
 	Do pMsg.TextData.WriteLine("</td></tr></table></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td><p style='font-size:1.2em;'><b>"_pTitle_"</b></p></td></tr><tr><td>&nbsp;</td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>Attached is your pivot table from your weekly subscription from <b><a href=''>Subscriptions Manager</a></b>. </td></tr><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage (edit days of the week/time/format/recipients and delete) your subscriptions <i><a href='http://localhost:52773/csp/user/PivotSubscriptions.UI.SubscriptionManager.zen'>here</a></i>.</td></tr><tr><td>You can unsubscribe by clicking <i>here</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
 	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr>")
