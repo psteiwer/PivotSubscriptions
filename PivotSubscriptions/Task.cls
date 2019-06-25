@@ -89,8 +89,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 	
 	// Only generate file if requested pivot has results
 	If tHasResults {
-		Set tTitle = $E(pPivot,1,*-6)
-		Set pParms("TITLE")=tTitle
+		Set pParms("TITLE")=$E(pPivot,1,*-6)
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
 		
@@ -120,7 +119,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
 			
 			// Add attachment
-			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tTitle, tFilename)
+			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tFilename)
 
 			If (pFormat = "PDF") {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
