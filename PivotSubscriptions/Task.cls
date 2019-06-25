@@ -45,7 +45,11 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pTitle As %String, pFilename As
 			Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
 		} ElseIf line = "<table border=""1"">" {
 			Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
-		} ElseIf line = "<x:Name>Results</x:Name>" || line = "<x:DoNotDisplayGridlines>False</x:DoNotDisplayGridlines>" {
+		} ElseIf (	(line = "<x:Name>Results</x:Name>") 
+					|| (line = "<x:DoNotDisplayGridlines>False</x:DoNotDisplayGridlines>") 
+					|| (line = "<html xmlns:x=3D""urn:schemas-microsoft-com:office:excel"">")
+					|| (line = "</html>") 
+					) {
 			Continue
 		} Else {
 			Do pMsg.TextData.WriteLine(line)
