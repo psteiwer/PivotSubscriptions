@@ -33,9 +33,28 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
-ClassMethod GenerateLink() As %Status 
+ClassMethod GenerateLink(ByRef link As %String) As %Status 
 {
-	Quit 0
+	
+	Set tSC=$$$OK
+	
+	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
+	
+	If $E(url,$L(url))="/" {
+		Set url=$E(url,1,$L(url)-1)
+	}
+	
+	If ($$$ISERR(tSC)) || ($G(url)="") {
+		Set url="http://127.0.0.1:57772"
+	}
+	
+	// Set tNamespace=##class(%Library.RoutineMgr).NamespaceGet()
+	
+	Set url=url_"/csp/"_$Namespace_"/"_"PivotSubscriptions.UI.SubscriptionManager.zen"
+	
+	Set link = url
+	
+	Quit tSC
 }
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
@@ -96,7 +115,10 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
-			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
+		
+			Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
+			
+			Do msg.TextData.WriteLine("Attached is the requested pivot table and link is here: "_link)
 			
 			// Add attachment
 			Set status=msg.AttachFile("",tFilename)
