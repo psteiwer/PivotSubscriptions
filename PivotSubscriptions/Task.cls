@@ -11,6 +11,7 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+	
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
@@ -30,6 +31,11 @@ Method OnTask() As %Status
 	}
 	
 	Quit tSC
+}
+
+ClassMethod GenerateLink() As %Status 
+{
+	Quit 0
 }
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
