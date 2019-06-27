@@ -1,6 +1,8 @@
 Class PivotSubscriptions.Subscription Extends %Persistent
 {
 
+Parameter DEFAULTGLOBAL = "^PivotSubscriptions.Sub";
+
 Property CreatedBy As %String;
 
 Property Pivot As %String(MAXLEN="");
@@ -14,6 +16,7 @@ Property Minute As %Integer (VALUELIST=",0,15,30,45");
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
 Property Emails As %String;
+
 
 Storage Default
 {
@@ -43,11 +46,11 @@ Storage Default
 <Value>Emails</Value>
 </Value>
 </Data>
-<DataLocation>^PivotSubscript8A5.SubscriptionD</DataLocation>
+<DataLocation>^PivotSubscriptions.SubD</DataLocation>
 <DefaultData>SubscriptionDefaultData</DefaultData>
-<IdLocation>^PivotSubscript8A5.SubscriptionD</IdLocation>
-<IndexLocation>^PivotSubscript8A5.SubscriptionI</IndexLocation>
-<StreamLocation>^PivotSubscript8A5.SubscriptionS</StreamLocation>
+<IdLocation>^PivotSubscriptions.SubD</IdLocation>
+<IndexLocation>^PivotSubscriptions.SubI</IndexLocation>
+<StreamLocation>^PivotSubscriptions.SubS</StreamLocation>
 <Type>%Storage.Persistent</Type>
 }
 
