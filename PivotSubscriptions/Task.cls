@@ -48,11 +48,9 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 		Set url="http://127.0.0.1:57772"
 	}
 	
-	// Set tNamespace=##class(%Library.RoutineMgr).NamespaceGet()
+	Set url = url_$System.CSP.GetDefaultApp($Namespace)
 	
-	Set url=url_"/csp/"_$Namespace_"/"_"PivotSubscriptions.UI.SubscriptionManager.zen"
-	
-	Set link = url
+	Set link = url_"/PivotSubscriptions.UI.SubscriptionManager.zen"
 	
 	Quit tSC
 }
