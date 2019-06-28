@@ -78,6 +78,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 			break;
 	}
 }
+
 /// Creates edit popup.
 ClientMethod editSubscription(subscriptionId,pivotName) [ Internal, Language = javascript ]
 {
