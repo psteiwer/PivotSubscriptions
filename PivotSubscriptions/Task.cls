@@ -11,7 +11,6 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
-	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
 	
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
@@ -126,7 +125,6 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
 		
-		// if based on if pdf or excel is selected, change filename accordingly
 		Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(tFilename,.pParms)
 	}
