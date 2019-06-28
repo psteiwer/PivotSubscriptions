@@ -79,6 +79,17 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 	}
 }
 
+/// Access edit subscription independently
+ClientMethod unsubscribe(subscriptionId,pivotName) [Internal, Language = javascript ]
+{
+	var parms = {
+			MODE:"models",
+	};
+	
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+subscriptionId+'&PIVOTNAME='+pivotName,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
+
+}
+
 /// Creates edit popup.
 ClientMethod editSubscription(subscriptionId,pivotName) [ Internal, Language = javascript ]
 {
