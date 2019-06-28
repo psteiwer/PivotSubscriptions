@@ -11,7 +11,10 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+<<<<<<< HEAD
 	
+=======
+>>>>>>> refs/heads/dev
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
@@ -33,6 +36,7 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
+<<<<<<< HEAD
 // Write improved email format for subscription, including embeded pivot table
 ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
@@ -73,6 +77,8 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 
 }
 
+=======
+>>>>>>> refs/heads/dev
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
