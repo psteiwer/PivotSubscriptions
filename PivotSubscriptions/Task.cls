@@ -11,6 +11,7 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+	
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
@@ -32,11 +33,75 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
+// Write improved email format for subscription, including embeded pivot table
+ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
+	Do ..GenerateLink(.link)
+
+	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
+	Do pMsg.TextData.WriteLine("table.border{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head>")
+	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
+	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr><tr><td>")
+
+	// embed pivot table as HTML table to email
+	Set stream=##class(%Stream.FileCharacter).%New()
+	Set sc=stream.LinkToFile(pFilename)
+
+	// .xls to String stream that is read by line and then written to the email (as HTML) by line
+	While 'stream.AtEnd {
+		Set line=stream.ReadLine()
+
+		// properly center and format table to match the rest of the style of the email
+		If line = "<table border=""0"">" {
+			Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
+		} ElseIf line = "<table border=""1"">" {
+			Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
+		} ElseIf (	(line = "<x:Name>Results</x:Name>") 
+					|| (line = "<x:DoNotDisplayGridlines>False</x:DoNotDisplayGridlines>") 
+					|| (line = "<html xmlns:x=3D""urn:schemas-microsoft-com:office:excel"">")
+					|| (line = "</html>") 
+					) {
+			Continue
+		} Else {
+			Do pMsg.TextData.WriteLine(line)
+		}
+	}
+
+	Do pMsg.TextData.WriteLine("</td></tr></table></td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td>Attached is your pivot table from your weekly subscription from <b><a href=''>Subscriptions Manager</a></b>. </td></tr><tr><td>&nbsp;</td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
+	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&copy;&nbsp;2019&nbsp;<b>Intersystems Corporation</b></td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One Memorial Drive, Cambridge, MA 02142</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
+
+}
+
+ClassMethod GenerateLink(ByRef link As %String) As %Status 
+{
+	
+	Set tSC=$$$OK
+	
+	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
+	
+	If $E(url,$L(url))="/" {
+		Set url=$E(url,1,$L(url)-1)
+	}
+	
+	If ($$$ISERR(tSC)) || ($G(url)="") {
+		Set url="http://127.0.0.1:57772"
+	}
+	
+	Set url = url_$System.CSP.GetDefaultApp($Namespace)
+	
+	Set link = url_"/PivotSubscriptions.UI.SubscriptionManager.zen"
+	
+	Quit tSC
+}
+
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
 	Set tFilename = ""
-	Set tTitle = ""
+	
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	
 	// Execute MDX to see if there are results
@@ -56,20 +121,12 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 	
 	// Only generate file if requested pivot has results
 	If tHasResults {
-		Set tTitle = $E(pPivot,1,*-6)
-		Set pParms("TITLE")=tTitle
+		Set pParms("TITLE")=$E(pPivot,1,*-6)
 		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
 		
-		// if based on if pdf or excel is selected, change filename accordingly
-		
-		If (pFormat = "Excel") {
-			Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
-			Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(tFilename,.pParms)
-		} Else {
-			Set tFilename = $replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".pdf"
-			Set tsc=##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
-		}
+		Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(tFilename,.pParms)
 	}
 
 	// Generate email
@@ -90,10 +147,21 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
-			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
+		
+			Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
+			
+			Do msg.TextData.WriteLine("Attached is the requested pivot table and link is here: "_link)
 			
 			// Add attachment
+			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tFilename)
+
+			If (pFormat = "PDF") {
+				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
+				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
+			}
+			
 			Set status=msg.AttachFile("",tFilename)
+
 			If $$$ISERR(status) 
 			{
 				Do $System.Status.DisplayError(status)
