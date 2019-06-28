@@ -11,6 +11,8 @@ Method OnTask() As %Status
 	Set tDayOfWeek=$zd($h,10)
 	Set tHour=$p($zt($piece($h,",",2),2),":",1)
 	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+	
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
@@ -72,6 +74,28 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 
 }
 
+ClassMethod GenerateLink(ByRef link As %String) As %Status 
+{
+	
+	Set tSC=$$$OK
+	
+	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
+	
+	If $E(url,$L(url))="/" {
+		Set url=$E(url,1,$L(url)-1)
+	}
+	
+	If ($$$ISERR(tSC)) || ($G(url)="") {
+		Set url="http://127.0.0.1:57772"
+	}
+	
+	Set url = url_$System.CSP.GetDefaultApp($Namespace)
+	
+	Set link = url_"/PivotSubscriptions.UI.SubscriptionManager.zen"
+	
+	Quit tSC
+}
+
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
@@ -123,7 +147,10 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
-			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
+		
+			Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
+			
+			Do msg.TextData.WriteLine("Attached is the requested pivot table and link is here: "_link)
 			
 			// Add attachment
 			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tFilename)
