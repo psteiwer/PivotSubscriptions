@@ -17,7 +17,6 @@ Property Format As %String(VALUELIST = ",Excel,PDF");
 
 Property Emails As %String;
 
-
 Storage Default
 {
 <Data name="SubscriptionDefaultData">
