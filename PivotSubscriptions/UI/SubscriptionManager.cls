@@ -133,7 +133,7 @@ Method Delete(pID As %Integer) As %String [ ZenMethod ]
 	Quit tMsg
 }
 
-/// Send the selected subscription now.
+/// Send the selected subscription by calling the SendEmail Class Method of Task
 Method SendNow(pId,pPivot) As %String [ ZenMethod ]
 {
 	Set tMsg = "Subscription Sent."
