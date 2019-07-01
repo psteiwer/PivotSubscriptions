@@ -53,9 +53,9 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 		Quit $$$ERROR()
 	}
 	
-	// checks whether stream has any data populated within the pivot table
 	Set tPopulateStatus=-1
 	
+	// iterate through stream to check that table has actual data
 	While 'tStream.AtEnd {
 		Set line = tStream.ReadLine()
 		
