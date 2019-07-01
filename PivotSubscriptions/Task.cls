@@ -44,27 +44,55 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 	Do pMsg.TextData.WriteLine("<tr><td><table class='table.data'><tr><td>&nbsp;</td></tr><tr><td class='table.cell'>")
 
 	// embed pivot table as HTML table to email
-	Set stream=##class(%Stream.FileCharacter).%New()
-	Set sc=stream.LinkToFile(pFilename)
-
-	// .xls to String stream that is read by line and then written to the email (as HTML) by line
-	While 'stream.AtEnd {
-		Set line=stream.ReadLine()
-
-		// properly center and format table to match the rest of the style of the email
-		If line = "<table border=""0"">" {
-			Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
-		} ElseIf line = "<table border=""1"">" {
-			Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
-		} ElseIf (	(line = "<x:Name>Results</x:Name>") 
-					|| (line = "<x:DoNotDisplayGridlines>False</x:DoNotDisplayGridlines>") 
-					|| (line = "<html xmlns:x=3D""urn:schemas-microsoft-com:office:excel"">")
-					|| (line = "</html>") 
-					) {
-			Continue
-		} Else {
-			Do pMsg.TextData.WriteLine(line)
+	Set tStream=##class(%Stream.FileCharacter).%New()
+	Set tSC=tStream.LinkToFile(pFilename)
+	
+	// check that file is valid file
+	If $$$ISERR(tSC) {
+		Do $System.Status.DisplayError(status)
+		Quit $$$ERROR()
+	}
+	
+	// checks whether stream has any data populated within the pivot table
+	Set tPopulateStatus=-1
+	
+	While 'tStream.AtEnd {
+		Set line = tStream.ReadLine()
+		
+		If $Find(line, "<td") {
+			Set tPopulateStatus = 1
+			Do pMsg.TextData.WriteLine(tPopulateStatus)
+			Quit
 		}
+	}
+	
+	// if the pivot table has actual values in the table, print the table
+	If tPopulateStatus {
+		
+		// rewind stream back to start to re-parse table
+		Do tStream.MoveTo(1)
+		
+		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
+		While 'tStream.AtEnd {
+			Set line=tStream.ReadLine()
+	
+			// properly center and format table to match the rest of the style of the email
+			If line = "<table border=""0"">" {
+				Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
+			} ElseIf line = "<table border=""1"">" {
+				Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
+			} ElseIf (	(line = "<x:Name>Results</x:Name>") 
+						|| (line = "<x:DoNotDisplayGridlines>False</x:DoNotDisplayGridlines>") 
+						|| (line = "<html xmlns:x=3D""urn:schemas-microsoft-com:office:excel"">")
+						|| (line = "</html>") 
+						) {
+				Continue
+			} Else {
+				Do pMsg.TextData.WriteLine(line)
+			}
+		}
+	} Else {
+		Do pMsg.TextData.WriteLine("Pivot table is unpopulated.")
 	}
 
 	Do pMsg.TextData.WriteLine("</td></tr></table></td></tr>")
@@ -72,7 +100,6 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
 	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&copy;&nbsp;2019&nbsp;<b>Intersystems Corporation</b></td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One Memorial Drive, Cambridge, MA 02142</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
-
 }
 
 ClassMethod GenerateLink(ByRef link As %String) As %Status 
