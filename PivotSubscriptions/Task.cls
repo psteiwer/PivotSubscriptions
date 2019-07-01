@@ -35,12 +35,13 @@ Method OnTask() As %Status
 
 // Write improved email format for subscription, including embeded pivot table
 ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
-	Do ..GenerateLink(.link)
+	Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
 
 	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
+	Do pMsg.TextData.WriteLine("table.data {width: 100%;border:0;cellspacing:0;cellpadding:0} table.cell {text-align:center}")
 	Do pMsg.TextData.WriteLine("table.border{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head>")
 	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
-	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr><tr><td>")
+	Do pMsg.TextData.WriteLine("<tr><td><table class='table.data'><tr><td>&nbsp;</td></tr><tr><td class='table.cell'>")
 
 	// embed pivot table as HTML table to email
 	Set stream=##class(%Stream.FileCharacter).%New()
@@ -68,7 +69,6 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 
 	Do pMsg.TextData.WriteLine("</td></tr></table></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>Attached is your pivot table from your weekly subscription from <b><a href=''>Subscriptions Manager</a></b>. </td></tr><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
 	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&copy;&nbsp;2019&nbsp;<b>Intersystems Corporation</b></td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One Memorial Drive, Cambridge, MA 02142</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
@@ -147,10 +147,6 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
-		
-			Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
-			
-			Do msg.TextData.WriteLine("Attached is the requested pivot table and link is here: "_link)
 			
 			// Add attachment
 			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tFilename)
