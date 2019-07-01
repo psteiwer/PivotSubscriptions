@@ -61,7 +61,6 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 		
 		If $Find(line, "<td") {
 			Set tPopulateStatus = 1
-			Do pMsg.TextData.WriteLine(tPopulateStatus)
 			Quit
 		}
 	}
