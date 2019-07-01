@@ -162,10 +162,6 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg=##class(%Net.MailMessage).%New()
 		Set msg.From="PivotSubscriptions"
 		Set msg.ReplyTo="psteiwer@intersystems.com"
-		For count=1:1:$l(pEmails,",") {
-			Set tEmail=$p(pEmails,",",count)
-			Do msg.To.Insert(tEmail)
-		}
 		
 		// Remove ".pivot" extension for subject
 		Set msg.Subject=$E(pPivot,1,*-6)
@@ -193,8 +189,14 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			Do msg.TextData.WriteLine("No data for requested pivot.")
 		}
 
-		// Send email
-		Set tSC=server.Send(msg)
+		// iterate through all subscribers and send emails to each individually
+		For count=1:1:$l(pEmails,",") {
+			Set tEmail=$p(pEmails,",",count)
+			Do msg.To.SetAt(tEmail,1)
+			
+			// Send email
+			Set tSC=server.Send(msg)
+		}
 		
 		If tHasResults {
 			// Delete file
