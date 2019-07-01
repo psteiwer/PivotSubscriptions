@@ -33,6 +33,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <column colName="Emails" header="Emails" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
 <column onclick="return zenPage.deleteSubscription('#(%query.ID)#');" linkCaption="Delete" link="#" />
+<column onclick="return zenPage.sendSubscriptionNow('#(%query.ID)#','#(%query.Pivot)#');" linkCaption="Send Now" link="#" />
 </tablePane>
 </vgroup>
 </hgroup>
@@ -80,13 +81,13 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 }
 
 /// Creates edit popup.
-ClientMethod editSubscription(subscriptionId,pivotName) [ Internal, Language = javascript ]
+ClientMethod editSubscription(pID,pPivot) [ Internal, Language = javascript ]
 {
 	var parms = {
 			MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+subscriptionId+'&PIVOTNAME='+pivotName,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pID+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
 }
 
 /// Delete the selected subscription.
@@ -95,6 +96,21 @@ ClientMethod deleteSubscription(pID) [ Language = javascript ]
 	if (pID!="") {
 		if (confirm($$$Text('Do you really wish to delete this subscription?'))) {
 			this.Delete(pID)
+			try {
+				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
+			}
+			catch(ex) {
+			}
+		}
+	}
+}
+
+/// Send the selected subscription now.
+ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
+{
+	if (pId!="") {
+		if (confirm($$$Text('Do you really wish to send this subscription?'))) {
+			this.SendNow(pId,pPivot)
 			try {
 				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
 			}
@@ -114,6 +130,23 @@ Method Delete(pID As %Integer) As %String [ ZenMethod ]
 		Set tMsg = $System.Status.GetErrorText(tSC)
 	}
 	
+	Quit tMsg
+}
+
+/// Send the selected subscription now.
+Method SendNow(pId,pPivot) As %String [ ZenMethod ]
+{
+	Set tMsg = "Subscription Sent."
+	
+	If pId'=0 {
+		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
+		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot, tSubscription.Emails, tSubscription.Format)
+	
+		If $$$ISERR(tSC) {
+			Set tMsg = $System.Status.GetErrorText(tSC)
+		}
+	}
+
 	Quit tMsg
 }
 
