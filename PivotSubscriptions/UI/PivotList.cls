@@ -1,6 +1,6 @@
 Include %DeepSee
 
-Class PivotSubscriptions.UI.PivotList Extends PivotSubscriptions.UI.Template [ System = 4 ]
+Class PivotSubscriptions.UI.PivotList Extends PivotSubscriptions.UI.Template
 {
 
 /// Displayed name of this page.
@@ -35,6 +35,18 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 </vgroup>
 </hgroup>
 </pane>
+}
+
+/// Get the (localized) title string for the page.
+Method %OnGetTitle() As %String [ Internal ]
+{
+	Quit $$$Text("Pivot List","PivotSubscriptions")
+}
+
+/// Get the (localized) name of the page.
+Method %OnGetPageName() As %String [ Internal ]
+{
+	Quit $$$Text("Pivot List","PivotSubscriptions")
 }
 
 Method ExecuteRS(pRS As %ResultSet, Output pSC As %Status, pInfo As %ZEN.Auxiliary.QueryInfo) As %Boolean
