@@ -8,9 +8,9 @@ Method OnTask() As %Status
 	Set tSC=$$$OK
 	
 	// Construct current day and time for query
-	Set tDayOfWeek=$zd($h,10)
-	Set tHour=$p($zt($piece($h,",",2),2),":",1)
-	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+	Set tDayOfWeek=$ZDATE($HOROLOG,10)
+	Set tHour=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1)
+	Set tMinute=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2)
 	
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
@@ -125,6 +125,8 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent(send, $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
+	
 	Set tSC=$$$OK
 	Set tFilename = ""
 	

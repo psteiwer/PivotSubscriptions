@@ -90,11 +90,11 @@ ClientMethod editSubscription(subscriptionId,pivotName) [ Internal, Language = j
 }
 
 /// Delete the selected subscription.
-ClientMethod deleteSubscription(pID) [ Language = javascript ]
+ClientMethod deleteSubscription(pId) [ Language = javascript ]
 {
 	if (pID!="") {
 		if (confirm($$$Text('Do you really wish to delete this subscription?'))) {
-			this.Delete(pID)
+			this.Delete(pId, pPivot)
 			try {
 				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
 			}
@@ -105,11 +105,14 @@ ClientMethod deleteSubscription(pID) [ Language = javascript ]
 }
 
 /// Delete a subscription.
-Method Delete(pID As %Integer) As %String [ ZenMethod ]
+Method Delete(pId As %Integer) As %String [ ZenMethod ]
 {
 	Set tMsg = "Subscription Deleted."
 	
-	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pID)
+	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("delete", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+	
+	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pId)
 	If $$$ISERR(tSC) {
 		Set tMsg = $System.Status.GetErrorText(tSC)
 	}
