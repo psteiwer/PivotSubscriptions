@@ -6,13 +6,13 @@ Class PivotSubscriptions.EventLog Extends %Persistent
 /* 
  * Only possible values are creation, update, deletion, and send
  */
-Property EventType As %String (VALUELIST="creation,update,deletion,send");
+Property EventType As %String (VALUELIST=",creation,update,deletion,send");
 
-Property TimeStamp As %TimeStamp [ Initialexpression = {$zdt($h,3)} ];
+Property TimeStamp As %TimeStamp [ InitialExpression = {$zdt($h, 3, 1)} ];
 
 Property UserName As %String(MAXLEN = 128) [ InitialExpression = {$username} ];
 
-Property Pivot As %String;
+Property Pivot As %String(MAXLEN = 512);
 
 Property DayOfWeek As %String;
 
@@ -31,7 +31,7 @@ ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat,
 	
 	Set tEventLog = ##class(PivotSubscriptions.EventLog).%New()
 	Set tEventLog.EventType = pEvent
-	Set tEventLog.TimeStamp = %Library.Utility.DateTime(7)
+	Set tEventLog.TimeStamp = $zdt($h, 3, 1)
 	Set tEventLog.UserName = pUser
 	Set tEventLog.Pivot = pPivot
 

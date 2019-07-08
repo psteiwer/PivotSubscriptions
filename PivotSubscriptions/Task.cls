@@ -125,7 +125,9 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent(send, $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
+	
+	If $$$ISERR(tLog) { Quit tLog }
 	
 	Set tSC=$$$OK
 	Set tFilename = ""

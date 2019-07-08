@@ -92,11 +92,10 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method EditSubscription(pSubscriptionId,pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
-	
-	Set tLog = ""
+	Set tLog = 1
 	
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
@@ -106,6 +105,7 @@ Method EditSubscription(pSubscriptionId,pPivot, pDayOfWeek, pHour, pMinute, pEma
 		Set tSubscription.CreatedBy=$username
 		Set tSubscription.Pivot=pPivot
 	}
+	
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
 	Set tSubscription.Minute=pMinute
@@ -114,7 +114,7 @@ Method EditSubscription(pSubscriptionId,pPivot, pDayOfWeek, pHour, pMinute, pEma
 	Set tSC=tSubscription.%Save()
 	
 	// If tLog is still the empty string, then a new subscription was created as tLog would have been initalized if 
-	If tLog = "" {
+	If tLog '= $$$OK {
 		Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("creation", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
 	}
 	
