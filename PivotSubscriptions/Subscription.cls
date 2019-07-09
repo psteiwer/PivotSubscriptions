@@ -11,7 +11,7 @@ Property DayOfWeek As %String;
 
 Property Hour As %Integer(MINVAL=0, MAXVAL=23);
 
-Property Minute As %Integer (VALUELIST=",0,15,30,45");
+Property Minute As %Integer(VALUELIST=",0,15,30,45");
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 

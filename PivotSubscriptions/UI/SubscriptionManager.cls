@@ -81,21 +81,21 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 }
 
 /// Creates edit popup.
-ClientMethod editSubscription(pID,pPivot) [ Internal, Language = javascript ]
+ClientMethod editSubscription(pId,pPivot) [ Internal, Language = javascript ]
 {
 	var parms = {
 			MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pID+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
 }
 
 /// Delete the selected subscription.
 ClientMethod deleteSubscription(pId) [ Language = javascript ]
 {
-	if (pID!="") {
+	if (pId!="") {
 		if (confirm($$$Text('Do you really wish to delete this subscription?'))) {
-			this.Delete(pId, pPivot)
+			this.Delete(pId)
 			try {
 				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
 			}
@@ -121,7 +121,7 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 }
 
 /// Delete a subscription.
-Method Delete(pId As %Integer) As %String [ ZenMethod ]
+ClassMethod Delete(pId As %Integer) As %String [ ZenMethod ]
 {
 	Set tMsg = "Subscription Deleted."
 	

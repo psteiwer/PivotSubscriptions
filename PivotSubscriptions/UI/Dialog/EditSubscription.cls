@@ -95,7 +95,6 @@ ClientMethod getDialogValue() [ Language = javascript ]
 Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
-	Set tLog = 1
 	
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
