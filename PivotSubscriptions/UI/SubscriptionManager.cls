@@ -121,7 +121,7 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 }
 
 /// Delete a subscription.
-ClassMethod Delete(pId As %Integer) As %String [ ZenMethod ]
+Method Delete(pId As %Integer) As %String [ ZenMethod ]
 {
 	Set tMsg = "Subscription Deleted."
 	
