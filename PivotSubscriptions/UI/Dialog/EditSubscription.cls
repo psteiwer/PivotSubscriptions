@@ -105,7 +105,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 		Set tSubscription.CreatedBy=$username
 		Set tSubscription.Pivot=pPivot
 	}
-	
+		
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
 	Set tSubscription.Minute=pMinute

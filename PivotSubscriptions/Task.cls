@@ -27,7 +27,7 @@ Method OnTask() As %Status
 		Set tPivot=tRS.%Get("Pivot")
 		Set tFormat=tRS.%Get("Format")
 		
-		Do ..SendEmail(tPivot,tEmails,tFormat)
+		Do ##class(PivotSubscriptions.Task).SendEmail(tPivot,tEmails,tFormat)
 	}
 	
 	Quit tSC
@@ -47,30 +47,11 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 	Set tStream=##class(%Stream.FileCharacter).%New()
 	Set tSC=tStream.LinkToFile(pFilename)
 	
-	// check that file is valid file
-	If $$$ISERR(tSC) {
-		Do $System.Status.DisplayError(status)
-		Quit $$$ERROR()
-	}
+	Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable() 
 	
-	Set tPopulateStatus=-1
-	
-	// iterate through stream to check that table has actual data
-	While 'tStream.AtEnd {
-		Set line = tStream.ReadLine()
-		
-		If $Find(line, "<td") {
-			Set tPopulateStatus = 1
-			Quit
-		}
-	}
-	
-	// if the pivot table has actual values in the table, print the table
-	If tPopulateStatus {
-		
-		// rewind stream back to start to re-parse table
+	// check subscription to see if its table has error status 
+	If tableStatus {
 		Do tStream.MoveTo(1)
-		
 		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 		While 'tStream.AtEnd {
 			Set line=tStream.ReadLine()
@@ -91,7 +72,8 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 			}
 		}
 	} Else {
-		Do pMsg.TextData.WriteLine("Pivot table is unpopulated.")
+		// custom error message
+		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
 	}
 
 	Do pMsg.TextData.WriteLine("</td></tr></table></td></tr>")
