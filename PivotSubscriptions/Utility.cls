@@ -1,7 +1,8 @@
 Class PivotSubscriptions.Utility
 {
 
-ClassMethod CheckTable(pPivot As %String) {
+ClassMethod CheckTable(pPivot As %String)
+{
 	Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
@@ -15,11 +16,11 @@ ClassMethod CheckTable(pPivot As %String) {
 	}
 	
 	Set tTableStatus=0
-	
+	Set headerCount=0
 	// iterate through stream to check that table has actual data
 	While 'tStream.AtEnd {
+		
 		Set line = tStream.ReadLine()
-		Set headerCount = 0
 		
 		If $Find(line, "<th") {
 			Set headerCount = headerCount + 1
@@ -27,6 +28,7 @@ ClassMethod CheckTable(pPivot As %String) {
 		
 		If $Find(line, "<td") {
 			Set tTableStatus = 1
+			// parameterize headerCount
 			If (headerCount > 10) {
 				Set tTableStatus = 0
 			}

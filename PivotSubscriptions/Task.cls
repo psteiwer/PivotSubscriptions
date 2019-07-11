@@ -34,7 +34,7 @@ Method OnTask() As %Status
 }
 
 // Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
+ClassMethod WriteEmail(pPivot As %String, pMsg As %Net.MailMessage, pTableStatus) {
 	Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
 
 	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
@@ -43,14 +43,14 @@ ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
 	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
 	Do pMsg.TextData.WriteLine("<tr><td><table class='table.data'><tr><td>&nbsp;</td></tr><tr><td class='table.cell'>")
 
+	Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
-	Set tSC=tStream.LinkToFile(pFilename)
-	
-	Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable() 
-	
+	Set tSC=tStream.LinkToFile(tFilename)
+		
 	// check subscription to see if its table has error status 
-	If tableStatus {
+	If pTableStatus {
 		Do tStream.MoveTo(1)
 		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 		While 'tStream.AtEnd {
@@ -143,6 +143,9 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 
 	// Generate email
 	If tSC {
+		// check whether the table generated is too wide/truncated AND whether the table has data
+		Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable(pPivot) 
+	
 		Set server=##class(%Net.SMTP).%New()
 		Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 		Set msg=##class(%Net.MailMessage).%New()
@@ -157,9 +160,10 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		If tHasResults {
 			
 			// Add attachment
-			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tFilename)
+			Do ##class(PivotSubscriptions.Task).WriteEmail(pPivot, msg, tableStatus)
 
-			If (pFormat = "PDF") {
+			// if table is too large, then just attach Excel instead
+			If ((pFormat = "PDF") && (tableStatus)) {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
 			}
