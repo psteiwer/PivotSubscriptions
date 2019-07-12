@@ -111,7 +111,8 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 	if (pId!="") {
 		// todo; parameterize default email
 		var email = prompt("Do you really wish to send this subscription to this email?", "hkim@intersystems.com");
-		if (email != "") {
+		
+		if (email != null && email != "") {
 			this.SendNow(pId,pPivot,email)
 			try {
 				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
@@ -119,6 +120,7 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 			catch(ex) {
 			}
 		}
+		
 	}
 }
 

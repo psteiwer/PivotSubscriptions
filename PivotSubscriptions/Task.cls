@@ -97,6 +97,8 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
 			} Else {
 				Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
+				// send email to manager (change later to be parameterized)
+				Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,"hkim@intersystems.com")
 			}
 			
 			Set status=msg.AttachFile("",tFilename)
