@@ -37,6 +37,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 {
 	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
 	
+	// more meaningful error handling
 	If $$$ISERR(tLog) { Quit tLog }
 	
 	Set tSC=$$$OK
@@ -90,10 +91,12 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			// Add attachment
 			Do ##class(PivotSubscriptions.Utility).WriteEmail(pPivot, msg, tableStatus)
 
-			// if table is too large, then just attach Excel instead
+			// if table is too large, then just attach Excel instead and log table error
 			If ((pFormat = "PDF") && (tableStatus)) {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
+			} Else {
+				Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
 			}
 			
 			Set status=msg.AttachFile("",tFilename)
