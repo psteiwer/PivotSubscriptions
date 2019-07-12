@@ -109,8 +109,10 @@ ClientMethod deleteSubscription(pId) [ Language = javascript ]
 ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 {
 	if (pId!="") {
-		if (confirm($$$Text('Do you really wish to send this subscription?'))) {
-			this.SendNow(pId,pPivot)
+		// todo; parameterize default email
+		var email = prompt("Do you really wish to send this subscription to this email?", "hkim@intersystems.com");
+		if (email != "") {
+			this.SendNow(pId,pPivot,email)
 			try {
 				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
 			}
@@ -137,13 +139,13 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 }
 
 /// Send the selected subscription by calling the SendEmail Class Method of Task
-Method SendNow(pId,pPivot) As %String [ ZenMethod ]
+Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 {
 	Set tMsg = "Subscription Sent."
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot, tSubscription.Emails, tSubscription.Format)
+		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot, pEmail, tSubscription.Format)
 	
 		If $$$ISERR(tSC) {
 			Set tMsg = $System.Status.GetErrorText(tSC)
