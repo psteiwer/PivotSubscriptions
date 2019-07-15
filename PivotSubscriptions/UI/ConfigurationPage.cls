@@ -16,7 +16,24 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <vgroup valign="top" >
 <spacer height="20" />
 
-<label id="Title" label="Configuration Page" />
+<label id="ManagerEmailLabel" label="Manager Email" />
+<text id="ManagerEmailText" value="" />
+
+<spacer height="10" />
+
+<label id="WebServerPortLabel" label="Web Server/Port" />
+<text id="WebServerPortText" value="" />
+
+<spacer height="10" />
+
+<label id="NamespaceLabel" label="Application Namespace" />
+<text id="NamespaceText" value="" />
+
+<spacer height="10" />
+
+<label id="ApplicationNameLabel" label="Application Name" />
+<text id="ApplicationNameText" value="" />
+
 
 </vgroup>
 </hgroup>
