@@ -5,20 +5,22 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 {
 	
 	Set tSC=$$$OK
-	
 	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
 	
 	If $E(url,$L(url))="/" {
 		Set url=$E(url,1,$L(url)-1)
 	}
 	
+	// if there is an error or the url generated is blank, set url to default web server and port
 	If ($$$ISERR(tSC)) || ($G(url)="") {
 		Set url="http://127.0.0.1:57772"
 	}
 	
-	Set url = url_$System.CSP.GetDefaultApp($Namespace)
+	Set tWebServerPortUrl = url
+	Set tNamespace = $System.CSP.GetDefaultApp($Namespace)
+	Set tApplicationName = "/PivotSubscriptions.UI.SubscriptionManager.zen"
 	
-	Set link = url_"/PivotSubscriptions.UI.SubscriptionManager.zen"
+	Set link = tWebServerPortUrl_tNamespace_tApplicationName
 	
 	Quit tSC
 }
