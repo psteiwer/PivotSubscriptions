@@ -1,6 +1,41 @@
 Class PivotSubscriptions.Utility
 {
 
+/// Utility method for saving and updating global variables
+ClassMethod ConfigureSettings(pManagerEmail, pTableError, pAppName, pNamespace, pWebPort) {
+	Set ^PivotSubscriptions.Settings("ManagerEmail") = pManagerEmail
+
+	// Binary 0 or 1 only acceptable as they are the only values accepted by the checkbox in the Configuration Page
+	If ((pTableError = 0) || (pTableError = 1)) {
+		Set ^PivotSubscriptions.Settings("TableError") = pTableError
+	}
+	
+	Set ^PivotSubscriptions.Settings("ApplicationName") = pAppName
+	Set ^PivotSubscriptions.Settings("Namespace") = pNamespace
+	Set ^PivotSubscriptions.Settings("WebServerPort") = pWebPort
+}
+
+ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
+{
+	If pConfigurationOptionName = "TableError" {
+		If $G(^PivotSubscriptions.Settings(pConfigurationOptionName)) {
+			If ( (^PivotSubscriptions.Settings(pConfigurationOptionName) = 1) || (^PivotSubscriptions.Settings(pConfigurationOptionName) = 0) ) {
+				Quit 1
+			} Else {
+				Quit 0
+			}
+		}
+	} ElseIf (pConfigurationOptionName '= "") {
+		If $G(^PivotSubscriptions.Settings(pConfigurationOptionName)) {
+			If (^PivotSubscriptions.Settings(pConfigurationOptionName) '= "") {
+				Quit 1
+			}
+		}
+	}
+
+	Quit 0
+}
+
 ClassMethod GenerateLink(ByRef link As %String) As %Status 
 {
 	
@@ -19,6 +54,16 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	Set tWebServerPortUrl = url
 	Set tNamespace = $System.CSP.GetDefaultApp($Namespace)
 	Set tApplicationName = "/PivotSubscriptions.UI.SubscriptionManager.zen"
+	
+	If (..CheckConfigurationGlobal("WebServerPort")) {
+		Set tApplicationName = ^PivotSubscriptions.Settings("WebServerPort")
+	}
+	If (..CheckConfigurationGlobal("Namespace")) {
+		Set tApplicationName = ^PivotSubscriptions.Settings("Namespace")
+	}
+	If (..CheckConfigurationGlobal("ApplicationName")) {
+		Set tApplicationName = ^PivotSubscriptions.Settings("ApplicationName")
+	}
 	
 	Set link = tWebServerPortUrl_tNamespace_tApplicationName
 	
