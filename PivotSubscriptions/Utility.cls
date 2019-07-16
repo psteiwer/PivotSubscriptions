@@ -85,14 +85,8 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage) {
 
 /// Write improved email format for subscription, including embeded pivot table
 ClassMethod WriteEmail(pPivot As %String, pMsg As %Net.MailMessage, pTableStatus) {
-	Do ##class(PivotSubscriptions.Utility).GenerateLink(.link)
-
-	Do pMsg.TextData.WriteLine("<html><head><style>.tab { margin-left: 5%; } .body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
-	Do pMsg.TextData.WriteLine("table.data {width: 100%;border:0;cellspacing:0;cellpadding:0} center {text-align:center;}")
-	Do pMsg.TextData.WriteLine("table.border{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head>")
-	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
-	Do pMsg.TextData.WriteLine("<tr><td><p class='center'>")
-
+	Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(pMsg)
+	
 	Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
@@ -126,11 +120,8 @@ ClassMethod WriteEmail(pPivot As %String, pMsg As %Net.MailMessage, pTableStatus
 		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
 	}
 
-	Do pMsg.TextData.WriteLine("</p></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
-	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'><i>Pivot Subscriptions</i> by DeepSee</p></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><p class='tab'>2019&nbsp;<b>Intersystems Corporation</p></b></td></tr><tr><td><p class='tab'>One Memorial Drive, Cambridge, MA 02142</p></td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
+
+	Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(pMsg)
 }
 
 ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String) As %Status
