@@ -19,21 +19,28 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <label id="ManagerEmailLabel" label="Manager Email" />
 <text id="ManagerEmailText" value="" />
 
-<spacer height="10" />
+<spacer height="8" />
+
+<checkbox id ="TableErrorCheckbox" caption="Send Table Error Messages?" value="" />
+
+<spacer height="16" />
 
 <label id="WebServerPortLabel" label="Web Server/Port" />
 <text id="WebServerPortText" value="" />
 
-<spacer height="10" />
+<spacer height="16" />
 
 <label id="NamespaceLabel" label="Application Namespace" />
 <text id="NamespaceText" value="" />
 
-<spacer height="10" />
+<spacer height="16" />
 
 <label id="ApplicationNameLabel" label="Application Name" />
 <text id="ApplicationNameText" value="" />
 
+<spacer height="16" />
+
+<button id="SaveButton" caption="Save" onclick="zenPage.ButtonClick();" />
 
 </vgroup>
 </hgroup>
@@ -58,5 +65,52 @@ Method %OnGetProductName() As %String [ Internal ]
 	Quit "DeepSee"
 }
 
+Method %OnAfterCreatePage() As %Status
+{
+	
+	If $G(^PivotSubscriptions.Settings("ManagerEmail")) {
+		Set ..%GetComponentById("ManagerEmailText").value=^PivotSubscriptions.Settings("ManagerEmail")
+	}
+	If $G(^PivotSubscriptions.Settings("WebServerPort")) {
+		Set ..%GetComponentById("WebServerPortText").value=^PivotSubscriptions.Settings("WebServerPort")
+	}
+	If $G(^PivotSubscriptions.Settings("Namespace")) {
+		Set ..%GetComponentById("NamespaceText").value=^PivotSubscriptions.Settings("Namespace")
+	}
+	If $G(^PivotSubscriptions.Settings("ApplicationName")) {
+		Set ..%GetComponentById("ApplicationNameText").value=^PivotSubscriptions.Settings("ApplicationName")
+	}
+	If $G(^PivotSubscriptions.Settings("TableError")) {
+		Set ..%GetComponentById("TableErrorCheckbox").value=^PivotSubscriptions.Settings("TableError")
+	}
+	
+	Quit $$$OK
+}
+
+ClientMethod ButtonClick() [ Language = javascript ]
+{
+   	try {
+		var manageremail=zen('ManagerEmailText').getValue();
+		var tableerror=zen('TableErrorCheckbox').getValue();
+		var webserverport=zen('WebServerPortText').getValue();
+		var namespace=zen('NamespaceText').getValue();
+		var application=zen('ApplicationNameText').getValue();
+		
+		var status=zenPage.SaveConfiguration(manageremail,tableerror,webserverport,namespace,application);
+	}
+	
+	catch(ex) {
+		zenExceptionHandler(ex,arguments);
+	}
+}
+
+Method SaveConfiguration(pManagerEmail, pTableError, pAppName, pNamespace, pWebPort) As %Status [ ZenMethod ]
+{
+	Set tSC=$$$OK
+	
+	Set tSC = ##class(PivotSubscriptions.Utility).ConfigureSettings()
+	
+	Quit tSC
+}
 
 }
