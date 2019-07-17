@@ -72,6 +72,9 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 			if (action=="okay") {
 				try {
 					self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
+					var table=zenPage.getComponentById('table');
+					//refresh data in contact table
+					table.executeQuery();
 				}
 				catch(ex) {
 				}

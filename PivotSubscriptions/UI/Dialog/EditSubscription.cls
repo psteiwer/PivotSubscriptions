@@ -80,6 +80,7 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var pivot=this.pivotName;
 		
 		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format);
+		
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
