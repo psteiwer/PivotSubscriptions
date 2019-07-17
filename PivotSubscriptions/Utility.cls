@@ -2,34 +2,39 @@ Class PivotSubscriptions.Utility
 {
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pManagerEmail, pTableError, pAppName, pNamespace, pWebPort) {
+ClassMethod ConfigureSettings(pManagerEmail As %String, pWebPort As %String, pNamespace As %String, pAppName As %String) {
 	Set ^PivotSubscriptions.Settings("ManagerEmail") = pManagerEmail
 
+	/*
 	// Binary 0 or 1 only acceptable as they are the only values accepted by the checkbox in the Configuration Page
 	If ((pTableError = 0) || (pTableError = 1)) {
 		Set ^PivotSubscriptions.Settings("TableError") = pTableError
 	}
+	*/
+	If pWebPort '= "" {
+		Set ^PivotSubscriptions.Settings("WebServerPort") = pWebPort
+	}
+	If pNamespace '= "" {
+		Set ^PivotSubscriptions.Settings("Namespace") = pNamespace
+	}
+	If pAppName '= "" {
+		Set ^PivotSubscriptions.Settings("ApplicationName") = pAppName
+	}
 	
-	Set ^PivotSubscriptions.Settings("ApplicationName") = pAppName
-	Set ^PivotSubscriptions.Settings("Namespace") = pNamespace
-	Set ^PivotSubscriptions.Settings("WebServerPort") = pWebPort
+	Quit $$$OK
 }
 
 ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 {
 	If pConfigurationOptionName = "TableError" {
-		If $G(^PivotSubscriptions.Settings(pConfigurationOptionName)) {
-			If ( (^PivotSubscriptions.Settings(pConfigurationOptionName) = 1) || (^PivotSubscriptions.Settings(pConfigurationOptionName) = 0) ) {
-				Quit 1
-			} Else {
-				Quit 0
-			}
+		If ( (^PivotSubscriptions.Settings(pConfigurationOptionName) = 1) || (^PivotSubscriptions.Settings(pConfigurationOptionName) = 0) ) {
+			Quit 1
+		} Else {
+			Quit 0
 		}
 	} ElseIf (pConfigurationOptionName '= "") {
-		If $G(^PivotSubscriptions.Settings(pConfigurationOptionName)) {
-			If (^PivotSubscriptions.Settings(pConfigurationOptionName) '= "") {
-				Quit 1
-			}
+		If (^PivotSubscriptions.Settings(pConfigurationOptionName) '= "") {
+			Quit 1
 		}
 	}
 
@@ -56,10 +61,10 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	Set tApplicationName = "/PivotSubscriptions.UI.SubscriptionManager.zen"
 	
 	If (..CheckConfigurationGlobal("WebServerPort")) {
-		Set tApplicationName = ^PivotSubscriptions.Settings("WebServerPort")
+		Set tWebServerPortUrl = ^PivotSubscriptions.Settings("WebServerPort")
 	}
 	If (..CheckConfigurationGlobal("Namespace")) {
-		Set tApplicationName = ^PivotSubscriptions.Settings("Namespace")
+		Set tNamespace = ^PivotSubscriptions.Settings("Namespace")
 	}
 	If (..CheckConfigurationGlobal("ApplicationName")) {
 		Set tApplicationName = ^PivotSubscriptions.Settings("ApplicationName")

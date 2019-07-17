@@ -95,16 +95,15 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			If ((pFormat = "PDF") && (tableStatus)) {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
-			} Else {
+			} ElseIf ('tableStatus) {
 				// Log that there was a table error
 				Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
 				
-				// Check if both configuration settings for manager email and table error are valid
-				If ( (..CheckConfigurationGlobal("ManagerEmail")) &&  (..CheckConfigurationGlobal("TableError"))) {
-					// Check if configuration setting for sending the table error email is set or not
-					If ^PivotSubscriptions.Settings("TableError") {
-						Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("ManagerEmail"))
-					}
+				Set validManagerEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("ManagerEmail")
+				
+				// Check if both configuration settings for manager email is valid
+				If ( validManagerEmail ) {
+					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("ManagerEmail"))
 				}
 			}
 			

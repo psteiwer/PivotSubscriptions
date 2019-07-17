@@ -17,26 +17,26 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <spacer height="20" />
 
 <label id="ManagerEmailLabel" label="Manager Email" />
-<text id="ManagerEmailText" value="" />
+<text id="ManagerEmailText" clientType = "string" />
 
 <spacer height="8" />
 
-<checkbox id ="TableErrorCheckbox" caption="Send Table Error Messages?" value="" />
+<checkbox id ="TableErrorCheckbox" caption="Send Table Error Messages?" />
 
 <spacer height="16" />
 
 <label id="WebServerPortLabel" label="Web Server/Port" />
-<text id="WebServerPortText" value="" />
+<text id="WebServerPortText" clientType = "string" />
 
 <spacer height="16" />
 
 <label id="NamespaceLabel" label="Application Namespace" />
-<text id="NamespaceText" value="" />
+<text id="NamespaceText" clientType = "string" />
 
 <spacer height="16" />
 
 <label id="ApplicationNameLabel" label="Application Name" />
-<text id="ApplicationNameText" value="" />
+<text id="ApplicationNameText" clientType = "string" />
 
 <spacer height="16" />
 
@@ -67,22 +67,10 @@ Method %OnGetProductName() As %String [ Internal ]
 
 Method %OnAfterCreatePage() As %Status
 {
-	
-	If $G(^PivotSubscriptions.Settings("ManagerEmail")) {
-		Set ..%GetComponentById("ManagerEmailText").value=^PivotSubscriptions.Settings("ManagerEmail")
-	}
-	If $G(^PivotSubscriptions.Settings("WebServerPort")) {
-		Set ..%GetComponentById("WebServerPortText").value=^PivotSubscriptions.Settings("WebServerPort")
-	}
-	If $G(^PivotSubscriptions.Settings("Namespace")) {
-		Set ..%GetComponentById("NamespaceText").value=^PivotSubscriptions.Settings("Namespace")
-	}
-	If $G(^PivotSubscriptions.Settings("ApplicationName")) {
-		Set ..%GetComponentById("ApplicationNameText").value=^PivotSubscriptions.Settings("ApplicationName")
-	}
-	If $G(^PivotSubscriptions.Settings("TableError")) {
-		Set ..%GetComponentById("TableErrorCheckbox").value=^PivotSubscriptions.Settings("TableError")
-	}
+	Set ..%GetComponentById("ManagerEmailText").value = ^PivotSubscriptions.Settings("ManagerEmail")
+	Set ..%GetComponentById("WebServerPortText").value = ^PivotSubscriptions.Settings("WebServerPort")
+	Set ..%GetComponentById("NamespaceText").value = ^PivotSubscriptions.Settings("Namespace")
+	Set ..%GetComponentById("ApplicationNameText").value = ^PivotSubscriptions.Settings("ApplicationName")
 	
 	Quit $$$OK
 }
@@ -91,12 +79,11 @@ ClientMethod ButtonClick() [ Language = javascript ]
 {
    	try {
 		var manageremail=zen('ManagerEmailText').getValue();
-		var tableerror=zen('TableErrorCheckbox').getValue();
 		var webserverport=zen('WebServerPortText').getValue();
 		var namespace=zen('NamespaceText').getValue();
 		var application=zen('ApplicationNameText').getValue();
 		
-		var status=zenPage.SaveConfiguration(manageremail,tableerror,webserverport,namespace,application);
+		var status=zenPage.SaveConfiguration(manageremail,webserverport,namespace,application);
 	}
 	
 	catch(ex) {
@@ -104,11 +91,11 @@ ClientMethod ButtonClick() [ Language = javascript ]
 	}
 }
 
-Method SaveConfiguration(pManagerEmail, pTableError, pAppName, pNamespace, pWebPort) As %Status [ ZenMethod ]
+Method SaveConfiguration(pManagerEmail, pWebPort, pNamespace, pAppName) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utility).ConfigureSettings()
+	Set tSC = ##class(PivotSubscriptions.Utility).ConfigureSettings(pManagerEmail, pWebPort, pNamespace, pAppName)
 	
 	Quit tSC
 }

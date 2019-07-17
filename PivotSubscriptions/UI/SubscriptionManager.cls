@@ -110,7 +110,7 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 {
 	if (pId!="") {
 		// todo; parameterize default email
-		var email = prompt("Do you really wish to send this subscription to this email?", "hkim@intersystems.com");
+		var email = prompt("Do you really wish to send this subscription to this email?", this.GetManagerEmail());
 		
 		if (email != null && email != "") {
 			this.SendNow(pId,pPivot,email)
@@ -155,6 +155,17 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 	}
 
 	Quit tMsg
+}
+
+Method GetManagerEmail() As %String [ ZenMethod ]
+{
+	Set tSC = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("ManagerEmail")
+	
+	If (tSC) {
+		Quit ^PivotSubscriptions.Settings("ManagerEmail")
+	}
+	
+	Quit ""
 }
 
 /// Query to get subscriptions for Subscription Manager display table.
