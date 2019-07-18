@@ -16,12 +16,13 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <vgroup valign="top" >
 <spacer height="20" />
 
-<label id="AdminEmailLabel" label="Admin Email" />
+<label id="AdminEmailLabel" label="" />
 <text id="AdminEmailText" clientType = "string" />
 
 <spacer height="16" />
 
-<listBox id="HTTPList" label="HTTP or HTTPs?" listWidth="20%"
+<label id="HTTPLabel" label="" />
+<listBox id="HTTPList" listWidth="20%"
          value="http://">
   <option value="http://" text="HTTP" />
   <option value="https://" text="HTTPs" />
@@ -29,12 +30,12 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 
 <spacer height="16" />
 
-<label id="ServerLabel" label="Server" />
+<label id="ServerLabel" label="" />
 <text id="ServerText" clientType = "string" />
 
 <spacer height="16" />
 
-<label id="PortLabel" label="Port Number" />
+<label id="PortLabel" label="" />
 <text id="PortText" clientType = "string" />
 
 <spacer height="16" />
@@ -66,6 +67,11 @@ Method %OnGetProductName() As %String [ Internal ]
 
 Method %OnAfterCreatePage() As %Status
 {
+	Set ..%GetComponentById("AdminEmailLabel").value = $$$TextJS("Send error email notification to:")
+	Set ..%GetComponentById("HTTPLabel").value = $$$TextJS("HTTP or HTTPS?")
+	Set ..%GetComponentById("ServerLabel").value = $$$TextJS("Server")
+	Set ..%GetComponentById("PortLabel").value = $$$TextJS("Port Number")
+	
 	// check if each global is instantiated and set only if they aren't empty or nonexsistent
 	If $G(^PivotSubscriptions.Settings("AdminEmail")) '= "" {
 		Set ..%GetComponentById("AdminEmailText").value = ^PivotSubscriptions.Settings("AdminEmail")
