@@ -1,6 +1,6 @@
 Include %DeepSee
 
-Class PivotSubscriptions.UI.PivotList Extends PivotSubscriptions.UI.Template [ System = 4 ]
+Class PivotSubscriptions.UI.PivotList Extends PivotSubscriptions.UI.Template
 {
 
 /// Displayed name of this page.

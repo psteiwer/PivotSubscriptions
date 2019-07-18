@@ -1,6 +1,6 @@
 Include %DeepSee
 
-Class PivotSubscriptions.UI.SubscriptionManager Extends PivotSubscriptions.UI.Template [ System = 4 ]
+Class PivotSubscriptions.UI.SubscriptionManager Extends PivotSubscriptions.UI.Template
 {
 
 /// Displayed name of this page.
@@ -16,10 +16,9 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <spacer height="20" />
 <tableNavigatorBar id="tableNavigator" tablePaneId="table" showPageSize="true" />
 <tablePane id="table"
+	tableName="PivotSubscriptions.Subscription"
     cellSpacing="2"
-	fixedHeaders="false"	
-	queryClass="PivotSubscriptions.UI.SubscriptionManager"
-	queryName="GetSubscriptionsForDisplay"
+	fixedHeaders="false"
 	useSnapshot="true"
 	showQuery="false"
 	showZebra="true"
@@ -29,8 +28,8 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	valueColumn="ID"
 	>
 <column colName="ID" header="Subscription ID" hidden="true" />
-<column id="Pivot" header="Pivot" colName="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#"/>
-<column colName="Emails" header="Emails" />
+<column id="Pivot" colName="Pivot" header="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#" filterType="text" filterOp="UP[" />
+<column id="Emails" colName="Emails" header="Emails" filterType="text" filterOp="UP[" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
 <column onclick="return zenPage.deleteSubscription('#(%query.ID)#');" linkCaption="Delete" link="#" />
 <column onclick="return zenPage.sendSubscriptionNow('#(%query.ID)#','#(%query.Pivot)#');" linkCaption="Send Now" link="#" />
