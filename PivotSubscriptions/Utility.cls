@@ -28,27 +28,22 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	Set tSC=$$$OK
 	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
 	
-	If $E(url,$L(url))="/" {
-		Set url=$E(url,1,$L(url)-1)
-	}
-	
-	// if there is an error or the url generated is blank, set url to default web server and port
-	If ($$$ISERR(tSC)) || ($G(url)="") {
-		Set url="http://127.0.0.1:57772"
-	}
-	
-	Set tWebServerPortUrl = url
-	
 	If (..CheckConfigurationGlobal("Http")) {
-		SET $EXTRACT(tWebServerPortUrl,1,7)=^PivotSubscriptions.Settings("Http")
+		Set tWebServerPortUrl = ^PivotSubscriptions.Settings("Http")
+	} Else {
+		Set tWebServerPortUrl = "http://"
 	}
 	
 	If (..CheckConfigurationGlobal("Server")) {
-		SET $EXTRACT(tWebServerPortUrl,$FIND(tWebServerPortUrl, "//"),$FIND(tWebServerPortUrl, ":",7)-2)=^PivotSubscriptions.Settings("Server")
+		Set tWebServerPortUrl = tWebServerPortUrl_^PivotSubscriptions.Settings("Server")
+	} Else {
+		Set tWebServerPortUrl = tWebServerPortUrl_h
 	}
 	
 	If (..CheckConfigurationGlobal("Port")) {
-		Set $E(tWebServerPortUrl, $F(tWebServerPortUrl, ":"), 5)=^PivotSubscriptions.Settings("Port")
+		Set tWebServerPortUrl = tWebServerPortUrl_":"_^PivotSubscriptions.Settings("Port")
+	} Else {
+		Set tWebServerPortUrl = tWebServerPortUrl_":"_p
 	}
 
 	Set tNamespace = $System.CSP.GetDefaultApp($Namespace)
@@ -69,8 +64,7 @@ ClassMethod CheckTable(pPivot As %String)
 	
 	// check that file is valid file
 	If $$$ISERR(tSC) {
-		Do $System.Status.DisplayError(status)
-		Quit $$$ERROR()
+		Quit tSC
 	}
 	
 	Set tTableStatus=0

@@ -44,9 +44,6 @@ Storage Default
 <Value name="8">
 <Value>Emails</Value>
 </Value>
-<Value name="9">
-<Value>TableError</Value>
-</Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>
 <DefaultData>SubscriptionDefaultData</DefaultData>
