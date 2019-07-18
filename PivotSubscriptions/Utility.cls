@@ -2,37 +2,18 @@ Class PivotSubscriptions.Utility
 {
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pManagerEmail As %String, pWebPort As %String, pNamespace As %String, pAppName As %String) {
-	Set ^PivotSubscriptions.Settings("ManagerEmail") = pManagerEmail
-
-	/*
-	// Binary 0 or 1 only acceptable as they are the only values accepted by the checkbox in the Configuration Page
-	If ((pTableError = 0) || (pTableError = 1)) {
-		Set ^PivotSubscriptions.Settings("TableError") = pTableError
-	}
-	*/
-	If pWebPort '= "" {
-		Set ^PivotSubscriptions.Settings("WebServerPort") = pWebPort
-	}
-	If pNamespace '= "" {
-		Set ^PivotSubscriptions.Settings("Namespace") = pNamespace
-	}
-	If pAppName '= "" {
-		Set ^PivotSubscriptions.Settings("ApplicationName") = pAppName
-	}
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort) {
+	Set ^PivotSubscriptions.Settings("AdminEmail") = pAdminEmail
+	Set ^PivotSubscriptions.Settings("Http") = pHttp
+	Set ^PivotSubscriptions.Settings("Server") = pServer
+	Set ^PivotSubscriptions.Settings("Port") = pPort
 	
 	Quit $$$OK
 }
 
 ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 {
-	If pConfigurationOptionName = "TableError" {
-		If ( (^PivotSubscriptions.Settings(pConfigurationOptionName) = 1) || (^PivotSubscriptions.Settings(pConfigurationOptionName) = 0) ) {
-			Quit 1
-		} Else {
-			Quit 0
-		}
-	} ElseIf (pConfigurationOptionName '= "") {
+	If (pConfigurationOptionName '= "") {
 		If (^PivotSubscriptions.Settings(pConfigurationOptionName) '= "") {
 			Quit 1
 		}
@@ -57,18 +38,21 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	}
 	
 	Set tWebServerPortUrl = url
+	
+	If (..CheckConfigurationGlobal("Http")) {
+		SET $EXTRACT(tWebServerPortUrl,1,7)=^PivotSubscriptions.Settings("Http")
+	}
+	
+	If (..CheckConfigurationGlobal("Server")) {
+		SET $EXTRACT(tWebServerPortUrl,$FIND(tWebServerPortUrl, "//"),$FIND(tWebServerPortUrl, ":",7)-2)=^PivotSubscriptions.Settings("Server")
+	}
+	
+	If (..CheckConfigurationGlobal("Port")) {
+		Set $E(tWebServerPortUrl, $F(tWebServerPortUrl, ":"), 5)=^PivotSubscriptions.Settings("Port")
+	}
+
 	Set tNamespace = $System.CSP.GetDefaultApp($Namespace)
 	Set tApplicationName = "/PivotSubscriptions.UI.SubscriptionManager.zen"
-	
-	If (..CheckConfigurationGlobal("WebServerPort")) {
-		Set tWebServerPortUrl = ^PivotSubscriptions.Settings("WebServerPort")
-	}
-	If (..CheckConfigurationGlobal("Namespace")) {
-		Set tNamespace = ^PivotSubscriptions.Settings("Namespace")
-	}
-	If (..CheckConfigurationGlobal("ApplicationName")) {
-		Set tApplicationName = ^PivotSubscriptions.Settings("ApplicationName")
-	}
 	
 	Set link = tWebServerPortUrl_tNamespace_tApplicationName
 	
@@ -186,7 +170,7 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String) As %Status
 	Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 	Set msg=##class(%Net.MailMessage).%New()
 	Set msg.From="PivotSubscriptions"
-	Set msg.ReplyTo="psteiwer@intersystems.com" // replace with manager email
+	Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail") // replace with admin email
 
 	// Remove ".pivot" extension for subject
 	Set msg.Subject="Table Error detected for "_$E(pPivot,1,*-6)
@@ -194,7 +178,7 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String) As %Status
 	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
 	Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for "_$E(pPivot,1,*-6)_", either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
+	Do msg.TextData.WriteLine("There was an table error detected for <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
 	Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(msg)
 
 	// Set recipient of email

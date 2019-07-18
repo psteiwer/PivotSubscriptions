@@ -1,6 +1,6 @@
 Include %DeepSee
 
-/// Configuration page that lets users of Pivot Subscriptions to set the default manager's email for table errors and instant emails (sendNow feature), as well as set the generated link to match the application's namespace, webserver/port, and application name.
+/// Configuration page that lets users of Pivot Subscriptions to set the default admin's email for table errors and instant emails (sendNow feature), as well as set the generated link to match the application's namespace, webserver/port, and application name.
 Class PivotSubscriptions.UI.ConfigurationPage Extends PivotSubscriptions.UI.Template
 {
 
@@ -16,27 +16,26 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <vgroup valign="top" >
 <spacer height="20" />
 
-<label id="ManagerEmailLabel" label="Manager Email" />
-<text id="ManagerEmailText" clientType = "string" />
-
-<spacer height="8" />
-
-<checkbox id ="TableErrorCheckbox" caption="Send Table Error Messages?" />
+<label id="AdminEmailLabel" label="Admin Email" />
+<text id="AdminEmailText" clientType = "string" />
 
 <spacer height="16" />
 
-<label id="WebServerPortLabel" label="Web Server/Port" />
-<text id="WebServerPortText" clientType = "string" />
+<listBox id="HTTPList" label="HTTP or HTTPs?" listWidth="20%"
+         value="http://">
+  <option value="http://" text="HTTP" />
+  <option value="https://" text="HTTPs" />
+</listBox>
 
 <spacer height="16" />
 
-<label id="NamespaceLabel" label="Application Namespace" />
-<text id="NamespaceText" clientType = "string" />
+<label id="ServerLabel" label="Server" />
+<text id="ServerText" clientType = "string" />
 
 <spacer height="16" />
 
-<label id="ApplicationNameLabel" label="Application Name" />
-<text id="ApplicationNameText" clientType = "string" />
+<label id="PortLabel" label="Port Number" />
+<text id="PortText" clientType = "string" />
 
 <spacer height="16" />
 
@@ -67,10 +66,19 @@ Method %OnGetProductName() As %String [ Internal ]
 
 Method %OnAfterCreatePage() As %Status
 {
-	Set ..%GetComponentById("ManagerEmailText").value = ^PivotSubscriptions.Settings("ManagerEmail")
-	Set ..%GetComponentById("WebServerPortText").value = ^PivotSubscriptions.Settings("WebServerPort")
-	Set ..%GetComponentById("NamespaceText").value = ^PivotSubscriptions.Settings("Namespace")
-	Set ..%GetComponentById("ApplicationNameText").value = ^PivotSubscriptions.Settings("ApplicationName")
+	// check if each global is instantiated and set only if they aren't empty or nonexsistent
+	If $G(^PivotSubscriptions.Settings("AdminEmail")) '= "" {
+		Set ..%GetComponentById("AdminEmailText").value = ^PivotSubscriptions.Settings("AdminEmail")
+	}
+	If $G(^PivotSubscriptions.Settings("Http")) '= "" {
+		Set ..%GetComponentById("HTTPList").value = ^PivotSubscriptions.Settings("Http")
+	}
+	If $G(^PivotSubscriptions.Settings("Server")) '= "" {
+		Set ..%GetComponentById("ServerText").value = ^PivotSubscriptions.Settings("Server")
+	}
+	If $G(^PivotSubscriptions.Settings("Port")) '= "" {
+		Set ..%GetComponentById("PortText").value = ^PivotSubscriptions.Settings("Port")
+	}
 	
 	Quit $$$OK
 }
@@ -78,24 +86,23 @@ Method %OnAfterCreatePage() As %Status
 ClientMethod ButtonClick() [ Language = javascript ]
 {
    	try {
-		var manageremail=zen('ManagerEmailText').getValue();
-		var webserverport=zen('WebServerPortText').getValue();
-		var namespace=zen('NamespaceText').getValue();
-		var application=zen('ApplicationNameText').getValue();
+		var adminemail=zen('AdminEmailText').getValue();
+		var http=zen('HTTPList').getValue();
+		var server=zen('ServerText').getValue();
+		var port=zen('PortText').getValue();
 		
-		var status=zenPage.SaveConfiguration(manageremail,webserverport,namespace,application);
+		var status=zenPage.SaveConfiguration(adminemail,http,server,port);
 	}
-	
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
 }
 
-Method SaveConfiguration(pManagerEmail, pWebPort, pNamespace, pAppName) As %Status [ ZenMethod ]
+Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utility).ConfigureSettings(pManagerEmail, pWebPort, pNamespace, pAppName)
+	Set tSC = ##class(PivotSubscriptions.Utility).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort)
 	
 	Quit tSC
 }

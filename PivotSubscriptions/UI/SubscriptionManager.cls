@@ -72,13 +72,13 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 			if (action=="okay") {
 				try {
 					self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
-					var table=zenPage.getComponentById('table');
-					//refresh data in contact table
-					table.executeQuery();
 				}
 				catch(ex) {
 				}
 			}
+			var table=zenPage.getComponentById('table');
+			//refresh data in contact table
+			table.executeQuery();
 			break;
 	}
 }
@@ -162,10 +162,10 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 
 Method GetManagerEmail() As %String [ ZenMethod ]
 {
-	Set tSC = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("ManagerEmail")
+	Set tSC = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
 	
 	If (tSC) {
-		Quit ^PivotSubscriptions.Settings("ManagerEmail")
+		Quit ^PivotSubscriptions.Settings("AdminEmail")
 	}
 	
 	Quit ""

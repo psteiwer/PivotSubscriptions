@@ -99,11 +99,11 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				// Log that there was a table error
 				Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
 				
-				Set validManagerEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("ManagerEmail")
+				Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
 				
-				// Check if both configuration settings for manager email is valid
-				If ( validManagerEmail ) {
-					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("ManagerEmail"))
+				// Check if both configuration settings for admin email is valid
+				If ( validAdminEmail ) {
+					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"))
 				}
 			}
 			
