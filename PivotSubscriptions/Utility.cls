@@ -43,7 +43,9 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	If (..CheckConfigurationGlobal("Port")) {
 		Set tWebServerPortUrl = tWebServerPortUrl_":"_^PivotSubscriptions.Settings("Port")
 	} Else {
-		Set tWebServerPortUrl = tWebServerPortUrl_":"_p
+		If '(..CheckConfigurationGlobal("Server")) {
+			Set tWebServerPortUrl = tWebServerPortUrl_":"_p
+		}
 	}
 
 	Set tNamespace = $System.CSP.GetDefaultApp($Namespace)

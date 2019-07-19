@@ -22,11 +22,9 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <spacer height="16" />
 
 <label id="HTTPLabel" label="" />
-<listBox id="HTTPList" listWidth="20%"
-         value="http://">
-  <option value="http://" text="HTTP" />
-  <option value="https://" text="HTTPs" />
-</listBox>
+<radioSet id="HTTPButton" 
+          displayList="HTTP, HTTPs"
+          valueList="http://,https://" />
 
 <spacer height="16" />
 
@@ -77,7 +75,7 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("AdminEmailText").value = ^PivotSubscriptions.Settings("AdminEmail")
 	}
 	If $G(^PivotSubscriptions.Settings("Http")) '= "" {
-		Set ..%GetComponentById("HTTPList").value = ^PivotSubscriptions.Settings("Http")
+		Set ..%GetComponentById("HTTPButton").value = ^PivotSubscriptions.Settings("Http")
 	}
 	If $G(^PivotSubscriptions.Settings("Server")) '= "" {
 		Set ..%GetComponentById("ServerText").value = ^PivotSubscriptions.Settings("Server")
@@ -93,7 +91,7 @@ ClientMethod ButtonClick() [ Language = javascript ]
 {
    	try {
 		var adminemail=zen('AdminEmailText').getValue();
-		var http=zen('HTTPList').getValue();
+		var http=zen('HTTPButton').getValue();
 		var server=zen('ServerText').getValue();
 		var port=zen('PortText').getValue();
 		
