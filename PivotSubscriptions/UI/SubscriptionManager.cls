@@ -132,7 +132,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	Set tMsg = "Subscription Deleted."
 	
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("delete", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
 	
 	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pId)
 	If $$$ISERR(tSC) {
@@ -149,7 +149,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot, pEmail, tSubscription.Format)
+		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute)
 	
 		If $$$ISERR(tSC) {
 			Set tMsg = $System.Status.GetErrorText(tSC)

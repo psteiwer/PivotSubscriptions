@@ -26,20 +26,31 @@ Method OnTask() As %Status
 		Set tEmails=tRS.%Get("Emails")
 		Set tPivot=tRS.%Get("Pivot")
 		Set tFormat=tRS.%Get("Format")
+		Set tDayOfWeek=tRS.%Get("DayOfWeek")
+		Set tHour=tRS.%Get("Hour")
+		Set tMinute=tRS.%Get("Minute")
 		
-		Do ##class(PivotSubscriptions.Task).SendEmail(tPivot,tEmails,tFormat)
+		Do ##class(PivotSubscriptions.Task).SendSubscription(tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute)
 	}
 	
 	Quit tSC
 }
 
-ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
-{
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
+ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute) {
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails)
 	
 	// more meaningful error handling
 	If $$$ISERR(tLog) { Quit tLog }
 	
+	Do ##class(PivotSubscriptions.Task).SendEmail(tPivot,tEmails,tFormat)
+	
+	If '(##class(PivotSubscriptions.Utility).CheckTable(pPivot)) {
+		Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pMinute, pFormat, pEmails, pFormat, pEmails)
+	}
+}
+
+ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
+{	
 	Set tSC=$$$OK
 	Set tFilename = ""
 	
@@ -91,14 +102,11 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			// Add attachment
 			Do ##class(PivotSubscriptions.Utility).WriteEmail(pPivot, msg, tableStatus)
 
-			// if table is too large, then just attach Excel instead and log table error
+			// if table is too large, then just attach Excel instead
 			If ((pFormat = "PDF") && (tableStatus)) {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
 			} ElseIf ('tableStatus) {
-				// Log that there was a table error
-				Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), pFormat, pEmails)
-				
 				Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
 				
 				// Check if both configuration settings for admin email is valid
