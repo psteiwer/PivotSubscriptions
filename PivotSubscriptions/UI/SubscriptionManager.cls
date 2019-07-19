@@ -27,11 +27,12 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	maxRows="1000"
 	valueColumn="ID"
 	>
-	<column colName="ID" header="Subscription ID" hidden="true" />
-	<column id="Pivot" colName="Pivot" header="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#" filterType="text" filterOp="UP[" />
-	<column id="Emails" colName="Emails" header="Emails" filterType="text" filterOp="UP[" />
-	<column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
-	<column onclick="return zenPage.deleteSubscription('#(%query.ID)#');" linkCaption="Delete" link="#" />
+<column colName="ID" header="Subscription ID" hidden="true" />
+<column id="Pivot" colName="Pivot" header="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#" filterType="text" filterOp="UP[" />
+<column id="Emails" colName="Emails" header="Emails" filterType="text" filterOp="UP[" />
+<column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
+<column onclick="return zenPage.deleteSubscription('#(%query.ID)#');" linkCaption="Delete" link="#" />
+<column onclick="return zenPage.sendSubscriptionNow('#(%query.ID)#','#(%query.Pivot)#');" linkCaption="Send Now" link="#" />
 </tablePane>
 </vgroup>
 </hgroup>
@@ -74,26 +75,29 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 				catch(ex) {
 				}
 			}
+			var table=zenPage.getComponentById('table');
+			//refresh data in contact table
+			table.executeQuery();
 			break;
 	}
 }
 
 /// Creates edit popup.
-ClientMethod editSubscription(subscriptionId, pivotName) [ Internal, Language = javascript ]
+ClientMethod editSubscription(pId,pPivot) [ Internal, Language = javascript ]
 {
 	var parms = {
 			MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+subscriptionId+'&PIVOTNAME='+pivotName,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
 }
 
 /// Delete the selected subscription.
-ClientMethod deleteSubscription(pID) [ Language = javascript ]
+ClientMethod deleteSubscription(pId) [ Language = javascript ]
 {
-	if (pID!="") {
+	if (pId!="") {
 		if (confirm($$$Text('Do you really wish to delete this subscription?'))) {
-			this.Delete(pID)
+			this.Delete(pId)
 			try {
 				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
 			}
@@ -103,16 +107,73 @@ ClientMethod deleteSubscription(pID) [ Language = javascript ]
 	}
 }
 
+/// Send the selected subscription now.
+ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
+{
+	if (pId!="") {
+		// todo; parameterize default email
+		var email = prompt("Do you really wish to send this subscription to this email?", this.GetManagerEmail());
+		
+		if (email != null && email != "") {
+			this.SendNow(pId,pPivot,email)
+			try {
+				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
+			}
+			catch(ex) {
+			}
+		}
+		
+	}
+}
+
 /// Delete a subscription.
-Method Delete(pID As %Integer) As %String [ ZenMethod ]
+Method Delete(pId As %Integer) As %String [ ZenMethod ]
 {
 	Set tMsg = "Subscription Deleted."
 	
-	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pID)
+	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+	
+	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pId)
 	If $$$ISERR(tSC) {
 		Set tMsg = $System.Status.GetErrorText(tSC)
 	}
 	
 	Quit tMsg
 }
+
+/// Send the selected subscription by calling the SendEmail Class Method of Task
+Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
+{
+	Set tMsg = "Subscription Sent."
+	
+	If pId'=0 {
+		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
+		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute)
+	
+		If $$$ISERR(tSC) {
+			Set tMsg = $System.Status.GetErrorText(tSC)
+		}
+	}
+
+	Quit tMsg
+}
+
+Method GetManagerEmail() As %String [ ZenMethod ]
+{
+	Set tSC = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+	
+	If (tSC) {
+		Quit ^PivotSubscriptions.Settings("AdminEmail")
+	}
+	
+	Quit ""
+}
+
+/// Query to get subscriptions for Subscription Manager display table.
+Query GetSubscriptionsForDisplay() As %SQLQuery
+{
+	SELECT ID,Pivot,Emails FROM PivotSubscriptions.Subscription
+}
+
 }

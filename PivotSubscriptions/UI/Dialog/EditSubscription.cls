@@ -80,6 +80,7 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var pivot=this.pivotName;
 		
 		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format);
+		
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -92,9 +93,10 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method EditSubscription(pSubscriptionId,pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
+	Set tLog = $$$OK
 	
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
@@ -103,12 +105,22 @@ Method EditSubscription(pSubscriptionId,pPivot, pDayOfWeek, pHour, pMinute, pEma
 		Set tSubscription.CreatedBy=$username
 		Set tSubscription.Pivot=pPivot
 	}
+		
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
 	Set tSubscription.Minute=pMinute
 	Set tSubscription.Format=pFormat
 	Set tSubscription.Emails=pEmails
 	Set tSC=tSubscription.%Save()
+	
+	// log new values into event log instead of old values, as well as logging after a successful save
+	If tSC {
+		If pSubscriptionId '= 0 {
+			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("update", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+		} Else {
+			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("creation", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+		}
+	}
 	
 	Quit tSC
 }

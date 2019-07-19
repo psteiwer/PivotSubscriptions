@@ -8,9 +8,9 @@ Method OnTask() As %Status
 	Set tSC=$$$OK
 	
 	// Construct current day and time for query
-	Set tDayOfWeek=$zd($h,10)
-	Set tHour=$p($zt($piece($h,",",2),2),":",1)
-	Set tMinute=$p($zt($piece($h,",",2),2),":",2)
+	Set tDayOfWeek=$ZDATE($HOROLOG,10)
+	Set tHour=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1)
+	Set tMinute=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2)
 	
 	If $G(^PivotSubscriptions.Settings("TestEnv")) {
 		// Ignore minute for testing purposes
@@ -26,79 +26,33 @@ Method OnTask() As %Status
 		Set tEmails=tRS.%Get("Emails")
 		Set tPivot=tRS.%Get("Pivot")
 		Set tFormat=tRS.%Get("Format")
+		Set tDayOfWeek=tRS.%Get("DayOfWeek")
+		Set tHour=tRS.%Get("Hour")
+		Set tMinute=tRS.%Get("Minute")
 		
-		Do ..SendEmail(tPivot,tEmails,tFormat)
+		Do ##class(PivotSubscriptions.Task).SendSubscription(tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute)
 	}
 	
 	Quit tSC
 }
 
-// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pMsg As %Net.MailMessage, pFilename As %String) {
-	Do ##class(PivotSubscriptions.Task).GenerateLink(.link)
-
-	Do pMsg.TextData.WriteLine("<html><head><style>body {font-family: Verdana,sans-serif;font-size: 0.9em;}table.center {width:70%; margin-left:15%; margin-right:15%;}")
-	Do pMsg.TextData.WriteLine("table.data {width: 100%;border:0;cellspacing:0;cellpadding:0} table.cell {text-align:center}")
-	Do pMsg.TextData.WriteLine("table.border{font-family: Trebuchet MS, sans-serif;color: white;background-color: #3eb2b4;width:100%;}</style></head>")
-	Do pMsg.TextData.WriteLine("<body><table class='center'><tr><td><table class='border'><tr><td>&nbsp;</td></tr></table></tr></td>")
-	Do pMsg.TextData.WriteLine("<tr><td><table class='table.data'><tr><td>&nbsp;</td></tr><tr><td class='table.cell'>")
-
-	// embed pivot table as HTML table to email
-	Set stream=##class(%Stream.FileCharacter).%New()
-	Set sc=stream.LinkToFile(pFilename)
-
-	// .xls to String stream that is read by line and then written to the email (as HTML) by line
-	While 'stream.AtEnd {
-		Set line=stream.ReadLine()
-
-		// properly center and format table to match the rest of the style of the email
-		If line = "<table border=""0"">" {
-			Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
-		} ElseIf line = "<table border=""1"">" {
-			Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
-		} ElseIf (	(line = "<x:Name>Results</x:Name>") 
-					|| (line = "<x:DoNotDisplayGridlines>False</x:DoNotDisplayGridlines>") 
-					|| (line = "<html xmlns:x=3D""urn:schemas-microsoft-com:office:excel"">")
-					|| (line = "</html>") 
-					) {
-			Continue
-		} Else {
-			Do pMsg.TextData.WriteLine(line)
-		}
-	}
-
-	Do pMsg.TextData.WriteLine("</td></tr></table></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
-	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Pivot Subscriptions</i> by DeepSee</td></tr><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&copy;&nbsp;2019&nbsp;<b>Intersystems Corporation</b></td></tr><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One Memorial Drive, Cambridge, MA 02142</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
-
-}
-
-ClassMethod GenerateLink(ByRef link As %String) As %Status 
-{
+ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute) {
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails)
 	
-	Set tSC=$$$OK
+	// more meaningful error handling
+	If $$$ISERR(tLog) { Quit tLog }
 	
-	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
+	Do ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat)
 	
-	If $E(url,$L(url))="/" {
-		Set url=$E(url,1,$L(url)-1)
+	If '(##class(PivotSubscriptions.Utility).CheckTable(pPivot)) {
+		Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pMinute, pFormat, pEmails, pFormat, pEmails)
 	}
 	
-	If ($$$ISERR(tSC)) || ($G(url)="") {
-		Set url="http://127.0.0.1:57772"
-	}
-	
-	Set url = url_$System.CSP.GetDefaultApp($Namespace)
-	
-	Set link = url_"/PivotSubscriptions.UI.SubscriptionManager.zen"
-	
-	Quit tSC
+	Quit $$$OK
 }
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
-{
+{	
 	Set tSC=$$$OK
 	Set tFilename = ""
 	
@@ -131,15 +85,14 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 
 	// Generate email
 	If tSC {
+		// check whether the table generated is too wide/truncated AND whether the table has data
+		Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable(pPivot)
+	
 		Set server=##class(%Net.SMTP).%New()
 		Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 		Set msg=##class(%Net.MailMessage).%New()
 		Set msg.From="PivotSubscriptions"
 		Set msg.ReplyTo="psteiwer@intersystems.com"
-		For count=1:1:$l(pEmails,",") {
-			Set tEmail=$p(pEmails,",",count)
-			Do msg.To.Insert(tEmail)
-		}
 		
 		// Remove ".pivot" extension for subject
 		Set msg.Subject=$E(pPivot,1,*-6)
@@ -149,11 +102,19 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		If tHasResults {
 			
 			// Add attachment
-			Do ##class(PivotSubscriptions.Task).WriteEmail(msg, tFilename)
+			Do ##class(PivotSubscriptions.Utility).WriteEmail(pPivot, msg, tableStatus)
 
-			If (pFormat = "PDF") {
+			// if table is too large, then just attach Excel instead
+			If ((pFormat = "PDF") && (tableStatus)) {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
+			} ElseIf ('tableStatus) {
+				Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+				
+				// Check if both configuration settings for admin email is valid
+				If ( validAdminEmail ) {
+					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"))
+				}
 			}
 			
 			Set status=msg.AttachFile("",tFilename)
@@ -167,8 +128,14 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			Do msg.TextData.WriteLine("No data for requested pivot.")
 		}
 
-		// Send email
-		Set tSC=server.Send(msg)
+		// iterate through all subscribers and send emails to each individually
+		For count=1:1:$l(pEmails,",") {
+			Set tEmail=$p(pEmails,",",count)
+			Do msg.To.SetAt(tEmail,1)
+			
+			// Send email
+			Set tSC=server.Send(msg)
+		}
 		
 		If tHasResults {
 			// Delete file
