@@ -100,7 +100,6 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
-		Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("update", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
 	} Else {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%New()
 		Set tSubscription.CreatedBy=$username
@@ -114,9 +113,13 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSubscription.Emails=pEmails
 	Set tSC=tSubscription.%Save()
 	
-	// If tLog is still the empty string, then a new subscription was created as tLog would have been initalized if 
-	If $$$ISERR(tLog) {
-		Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("creation", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+	// log new values into event log instead of old values, as well as logging after a successful save
+	If tSC {
+		If pSubscriptionId '= 0 {
+			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("update", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+		} Else {
+			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("creation", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+		}
 	}
 	
 	Quit tSC
