@@ -14,7 +14,7 @@ Property UserName As %String(MAXLEN = 128) [ InitialExpression = {$username} ];
 
 Property Pivot As %String(MAXLEN = 512);
 
-Property DayOfWeek As %String;
+Property DayOfWeek As %String(VALUELIST=",0,1,2,3,4,5,6", DISPLAYLIST=",Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday");
 
 Property Hour As %Integer(MINVAL=0, MAXVAL=23);
 
