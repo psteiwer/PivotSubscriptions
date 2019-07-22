@@ -92,7 +92,12 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 		Set msg=##class(%Net.MailMessage).%New()
 		Set msg.From="PivotSubscriptions"
-		Set msg.ReplyTo="psteiwer@intersystems.com"
+		
+		Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+		
+		If validAdminEmail {
+			Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail")
+		}
 		
 		// Remove ".pivot" extension for subject
 		Set msg.Subject=$E(pPivot,1,*-6)
@@ -109,9 +114,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
 			} ElseIf ('tableStatus) {
-				Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
-				
-				// Check if both configuration settings for admin email is valid
+				// Check if both configuration settings for admin email is valid before sending error message
 				If ( validAdminEmail ) {
 					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"))
 				}
