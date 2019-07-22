@@ -125,7 +125,9 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				Quit $$$ERROR()
 			}
 		} Else {
+			Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(msg)
 			Do msg.TextData.WriteLine("No data for requested pivot.")
+			Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(msg)
 		}
 
 		// iterate through all subscribers and send emails to each individually
