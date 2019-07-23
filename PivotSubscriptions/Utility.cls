@@ -13,7 +13,7 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort) {
 
 ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 {
-	If (pConfigurationOptionName '= "") {
+	If ((pConfigurationOptionName '= "") && $DATA(^PivotSubscriptions.Settings(pConfigurationOptionName))) {
 		If (^PivotSubscriptions.Settings(pConfigurationOptionName) '= "") {
 			Quit 1
 		}
