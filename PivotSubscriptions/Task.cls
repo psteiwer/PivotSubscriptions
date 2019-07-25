@@ -42,13 +42,17 @@ ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %
 	// more meaningful error handling
 	If $$$ISERR(tLog) { Quit tLog }
 	
-	Do ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat)
+	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat)
+	/*
+	If $$$ISERR(tSC) {
+	}
+	*/
 	
 	If '(##class(PivotSubscriptions.Utility).CheckTable(pPivot)) {
 		Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pMinute, pFormat, pEmails, pFormat, pEmails)
 	}
 	
-	Quit $$$OK
+	Quit tSC
 }
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
