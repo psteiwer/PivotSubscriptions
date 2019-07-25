@@ -16,9 +16,9 @@ Method OnTask() As %Status
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
 		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format,DayOfWeek,Hour,Minute FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
 	} Else {
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format,DayOfWeek,Hour,Minute FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
 	}
 	
 	// Loop through Subscription results and send emails.
@@ -27,8 +27,8 @@ Method OnTask() As %Status
 		Set tPivot=tRS.%Get("Pivot")
 		Set tFormat=tRS.%Get("Format")
 		Set tDayOfWeek=tRS.%Get("DayOfWeek")
-		Set tHour=tRS.%Get("Hour")
-		Set tMinute=tRS.%Get("Minute")
+        Set tHour=tRS.%Get("Hour")
+        Set tMinute=tRS.%Get("Minute")
 		
 		Do ##class(PivotSubscriptions.Task).SendSubscription(tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute)
 	}
@@ -92,7 +92,12 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 		Set msg=##class(%Net.MailMessage).%New()
 		Set msg.From="PivotSubscriptions"
-		Set msg.ReplyTo="psteiwer@intersystems.com"
+		
+		Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+		
+		If validAdminEmail {
+			Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail")
+		}
 		
 		// Remove ".pivot" extension for subject
 		Set msg.Subject=$E(pPivot,1,*-6)
@@ -109,9 +114,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
 			} ElseIf ('tableStatus) {
-				Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
-				
-				// Check if both configuration settings for admin email is valid
+				// Check if both configuration settings for admin email is valid before sending error message
 				If ( validAdminEmail ) {
 					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"))
 				}
@@ -125,7 +128,9 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 				Quit $$$ERROR()
 			}
 		} Else {
+			Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(msg)
 			Do msg.TextData.WriteLine("No data for requested pivot.")
+			Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(msg)
 		}
 
 		// iterate through all subscribers and send emails to each individually
