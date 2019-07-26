@@ -37,16 +37,19 @@ Method OnTask() As %Status
 }
 
 ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute) {
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails)
 	
-	// more meaningful error handling
-	If $$$ISERR(tLog) { Quit tLog }
+	try {
+		Do ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails)
+	}
+	catch exception {
+		Quit exception.AsStatus()
+	}
 	
 	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat)
-	/*
+	
 	If $$$ISERR(tSC) {
+		Quit tSC
 	}
-	*/
 	
 	If '(##class(PivotSubscriptions.Utility).CheckTable(pPivot)) {
 		Do ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pMinute, pFormat, pEmails, pFormat, pEmails)
