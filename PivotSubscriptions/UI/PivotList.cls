@@ -77,6 +77,8 @@ ClassMethod GetPivotsExecute(ByRef qHandle As %Binary, pOwner As %String = "", p
 	
 	Set tSC = ##class(%DeepSee.UserPortal.Utils).%GetFolderItemsForUser(.tItems,,,1,1)
 	
+	If $$$ISERR(tSC) { Quit tSC }
+	
 	Set tItem = $O(tItems(""))
 	While tItem'="" {
 		If $LG(tItems(tItem),2)="Pivot" {
