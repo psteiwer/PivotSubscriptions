@@ -4,6 +4,9 @@
 
 PivotSubsctions allows users to subscribe to a pivot table and recieve a scheduled email containing the specified pivot table. 
 
+## Accessing
+Once installation is complete, a new "Pivot Subscriptions" Link will be added to the InterSystems IRIS Business Intelligence User Portal. The User Portal can be found at the Management Portal -> Analytics -> User Portal.
+
 ## Installation
 1. Use the Download ZIP option for this project
 2. Extract the files and copy path
