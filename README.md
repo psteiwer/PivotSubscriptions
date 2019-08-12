@@ -1,4 +1,4 @@
-->!(https://github.com/hk4/PivotSubscriptions/blob/dev/Assets/PivotSubscriptions_BookCover.png)<-
+->![](https://github.com/hk4/PivotSubscriptions/blob/dev/Assets/PivotSubscriptions_BookCover.png)<-
 
 # PivotSubscriptions
 
