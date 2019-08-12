@@ -1,4 +1,6 @@
-->![](https://github.com/hk4/PivotSubscriptions/blob/dev/Assets/PivotSubscriptions_BookCover.png)<-
+<p align="center">
+  <img src="https://github.com/hk4/PivotSubscriptions/blob/dev/Assets/PivotSubscriptions_BookCover.png">
+</p>
 
 # PivotSubscriptions
 
