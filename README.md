@@ -1,3 +1,5 @@
+->!(https://github.com/hk4/PivotSubscriptions/blob/dev/Assets/PivotSubscriptions_BookCover.png)<-
+
 # PivotSubscriptions
 
 PivotSubsctions allows users to subscribe to a pivot table and recieve a scheduled email containing the specified pivot table. 
