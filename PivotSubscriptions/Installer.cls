@@ -19,6 +19,10 @@ ClassMethod RunInstaller(pRootDir)
 	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/PivotSubscriptions_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {style:'display: none;'},footer: {text:'$owner',style:'display: none;'}}"
 	Set tSC=tItem.%Save()
 	
+	If $$$ISERR(tSC) { Quit }
+	
+	Set tSC=##class(PivotSubscriptions.Task).ConfigureTask()
+	
 	Quit tSC
 }
 

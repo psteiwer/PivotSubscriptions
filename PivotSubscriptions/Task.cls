@@ -31,23 +31,24 @@ Method OnTask() As %Status
         Set tMinute=tRS.%Get("Minute")
 		
 		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute)
-		If $$$ISERR(tSC) { Quit tSC }
 	}
 	
 	Quit tSC
 }
 
-ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute) {
+ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute) As %Status {
 	
 	Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails)
-	If $$$ISERR(tSC) { Quit tSC }
+	
+	If $$$ISERR(tSC) Quit tSC
 	
 	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat)
-	If $$$ISERR(tSC) { Quit tSC }
+	
+	If $$$ISERR(tSC) Quit tSC
 	
 	If '(##class(PivotSubscriptions.Utility).CheckTable(pPivot)) {
 		Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pMinute, pFormat, pEmails, pFormat, pEmails)
-		If $$$ISERR(tSC) { Quit tSC }
+		If $$$ISERR(tSC) Quit tSC
 	}
 	
 	Quit tSC
@@ -83,8 +84,9 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		
 		Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(tFilename,.pParms)
-		If $$$ISERR(tSC) { Quit tSC }
 	}
+	
+	If $$$ISERR(tSC) Quit tSC
 
 	// Generate email
 	If tSC {
@@ -189,7 +191,6 @@ ClassMethod ConfigureTask() As %Status
 	
 	// The task should be operational at the next available build time
 	Set tSC=tTask.StartDateSet(+$h)
-	If $$$ISERR(tSC) Quit
 		
 	Set tSC=tTask.%Save()
 	Quit tSC
