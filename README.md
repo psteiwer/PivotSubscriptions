@@ -1,8 +1,5 @@
 # PivotSubscriptions
 
-[logo]: https://raw.githubusercontent.com/psteiwer/PivotSubscriptions/master/Assets/PivotSubscriptions_Wide.png "PivotSubscriptions Image" 
-![PivotSubscriptions Image][logo]
-
 PivotSubsctions allows users to subscribe to a pivot table and recieve a scheduled email containing the specified pivot table. 
 
 ## Accessing
