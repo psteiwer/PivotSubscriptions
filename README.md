@@ -1,6 +1,6 @@
 # PivotSubscriptions
 
-<p align="center"><img src="https://github.com/psteiwer/PivotSubscriptions/blob/dev/Assets/PivotSubscriptions_BookCover.png" height="192px" width="136px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/psteiwer/PivotSubscriptions/dev/Assets/PivotSubscriptions_BookCover.png" height="192px" width="136px"></p>
 
 PivotSubsctions allows users to subscribe to a pivot table and recieve a scheduled email containing the specified pivot table. 
 
