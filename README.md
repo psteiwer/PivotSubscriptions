@@ -15,7 +15,7 @@ Once installation is complete, a new "Pivot Subscriptions" Link will be added to
 4. Run the following commands:
 ```
 	set path="<PATH FROM STEP 2>"
-	do $system.OBJ.LoadDir(path_"/PivotSubscriptions/Installer.cls","ck",,1)
+	do $system.OBJ.Load(path_"/PivotSubscriptions/Installer.cls","ck",,1)
 	do ##class(PivotSubscriptions.Installer).RunInstaller(path)
 ```
 5. Follow the Configuration steps
