@@ -26,7 +26,7 @@ ClassMethod RunInstaller(pRootDir)
 	Quit tSC
 }
 
-/// Import AnalyzeThis image, code taken from %DeepSee.UI.Dialog.ImageUpload:%OnSubmit
+/// Import Cover, code taken from %DeepSee.UI.Dialog.ImageUpload:%OnSubmit
 ClassMethod ImportImage(pDir) As %Status
 {
 	Set tSC=$$$OK
