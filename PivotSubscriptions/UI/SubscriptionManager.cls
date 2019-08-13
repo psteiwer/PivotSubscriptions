@@ -134,6 +134,8 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
 	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
 	
+	If $$$ISERR(tLog) { Quit tSC }
+	
 	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pId)
 	If $$$ISERR(tSC) {
 		Set tMsg = $System.Status.GetErrorText(tSC)

@@ -27,6 +27,7 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	
 	Set tSC=$$$OK
 	Set tSC=##class(%Library.RoutineMgr).GetWebServerPort(.p, .h, .up, .url)
+	If $$$ISERR(tSC) { Quit tSC }
 	
 	If (..CheckConfigurationGlobal("Http")) {
 		Set tWebServerPortUrl = ^PivotSubscriptions.Settings("Http")
@@ -65,9 +66,7 @@ ClassMethod CheckTable(pPivot As %String)
 	Set tSC=tStream.LinkToFile(tFilename)
 	
 	// check that file is valid file
-	If $$$ISERR(tSC) {
-		Quit tSC
-	}
+	If $$$ISERR(tSC) { Quit tSC }
 	
 	Set tTableStatus=0
 	Set headerCount=0
@@ -122,6 +121,7 @@ ClassMethod WriteEmail(pPivot As %String, pMsg As %Net.MailMessage, pTableStatus
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
 	Set tSC=tStream.LinkToFile(tFilename)
+	If $$$ISERR(tSC) { Quit tSC }
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
@@ -158,7 +158,6 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String) As %Status
 {
 	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), "", pEmail)
 	
-	// more meaningful error handling
 	If $$$ISERR(tLog) { Quit tLog }
 	
 	// Generate email
