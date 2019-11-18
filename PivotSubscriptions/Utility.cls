@@ -1,6 +1,11 @@
 Class PivotSubscriptions.Utility
 {
 
+ClassMethod GetVersion() As %String
+{
+	Quit "v1.0.1"
+}
+
 /// Utility method for saving and updating global variables
 ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort) {
 	Set ^PivotSubscriptions.Settings("AdminEmail") = pAdminEmail

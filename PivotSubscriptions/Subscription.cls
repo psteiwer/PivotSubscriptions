@@ -17,6 +17,8 @@ Property Format As %String(VALUELIST = ",Excel,PDF");
 
 Property Emails As %String;
 
+Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
+
 Storage Default
 {
 <Data name="SubscriptionDefaultData">
@@ -43,6 +45,9 @@ Storage Default
 </Value>
 <Value name="8">
 <Value>Emails</Value>
+</Value>
+<Value name="9">
+<Value>Version</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>
