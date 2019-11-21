@@ -16,9 +16,9 @@ Method OnTask() As %Status
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
 		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
 	} Else {
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
 	}
 	
 	// Loop through Subscription results and send emails.
@@ -29,32 +29,33 @@ Method OnTask() As %Status
 		Set tDayOfWeek=tRS.%Get("DayOfWeek")
         Set tHour=tRS.%Get("Hour")
         Set tMinute=tRS.%Get("Minute")
+        Set tName=tRS.%Get("Name")
 		
-		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute)
+		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute,tName)
 	}
 	
 	Quit tSC
 }
 
-ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute) As %Status {
+ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute,pName) As %Status {
 	
-	Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails)
-	
-	If $$$ISERR(tSC) Quit tSC
-	
-	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat)
+	Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
 	
 	If $$$ISERR(tSC) Quit tSC
 	
-	If '(##class(PivotSubscriptions.Utility).CheckTable(pPivot)) {
-		Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pMinute, pFormat, pEmails, pFormat, pEmails)
+	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat,pName)
+	
+	If $$$ISERR(tSC) Quit tSC
+	
+	If '(##class(PivotSubscriptions.Utility).CheckTable(pName)) {
+		Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
 		If $$$ISERR(tSC) Quit tSC
 	}
 	
 	Quit tSC
 }
 
-ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
+ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String, pName As %String) As %Status
 {	
 	Set tSC=$$$OK
 	Set tFilename = ""
@@ -78,11 +79,11 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 	
 	// Only generate file if requested pivot has results
 	If tHasResults {
-		Set pParms("TITLE")=$E(pPivot,1,*-6)
-		Set pParms("SUBTITLE")="Report generated on "_$zd($h,6)
+		Set pParms("TITLE")=pName
+		Set pParms("SUBTITLE")=$E(pPivot,1,*-6)_". Report generated on "_$zd($h,6)
 		Set pParms("MDX")=mdx
 		
-		Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+		Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(tFilename,.pParms)
 	}
 	
@@ -91,7 +92,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 	// Generate email
 	If tSC {
 		// check whether the table generated is too wide/truncated AND whether the table has data
-		Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable(pPivot)
+		Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable(pName)
 	
 		Set server=##class(%Net.SMTP).%New()
 		Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
@@ -105,14 +106,14 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		}
 		
 		// Remove ".pivot" extension for subject
-		Set msg.Subject=$E(pPivot,1,*-6)
+		Set msg.Subject=pName
 		Set msg.IsBinary=0
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
 			
 			// Add attachment
-			Do ##class(PivotSubscriptions.Utility).WriteEmail(pPivot, msg, tableStatus)
+			Do ##class(PivotSubscriptions.Utility).WriteEmail(pName, msg, tableStatus)
 
 			// if table is too large, then just attach Excel instead
 			If ((pFormat = "PDF") && (tableStatus)) {
@@ -121,7 +122,7 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 			} ElseIf ('tableStatus) {
 				// Check if both configuration settings for admin email is valid before sending error message
 				If ( validAdminEmail ) {
-					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"))
+					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"),pName)
 				}
 			}
 			

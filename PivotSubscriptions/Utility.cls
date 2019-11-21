@@ -62,9 +62,9 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	Quit tSC
 }
 
-ClassMethod CheckTable(pPivot As %String)
+ClassMethod CheckTable(pName As %String)
 {
-	Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
@@ -118,10 +118,10 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage) {
 }
 
 /// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pPivot As %String, pMsg As %Net.MailMessage, pTableStatus) {
+ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus) {
 	Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(pMsg)
 	
-	Set tFilename=$replace($zstrip($E(pPivot,1,*-6),"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
@@ -159,9 +159,9 @@ ClassMethod WriteEmail(pPivot As %String, pMsg As %Net.MailMessage, pTableStatus
 	Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(pMsg)
 }
 
-ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String) As %Status
+ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
 {
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), "", pEmail)
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), "", pEmail, pName)
 	
 	If $$$ISERR(tLog) { Quit tLog }
 	
@@ -173,12 +173,12 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String) As %Status
 	Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail") // replace with admin email
 
 	// Remove ".pivot" extension for subject
-	Set msg.Subject="Table Error detected for "_$E(pPivot,1,*-6)
+	Set msg.Subject="Table Error detected for "_pName
 	Set msg.IsBinary=0
 	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
 	Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
+	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
 	Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(msg)
 
 	// Set recipient of email
