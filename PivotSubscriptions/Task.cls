@@ -43,6 +43,10 @@ ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %
 	
 	If $$$ISERR(tSC) Quit tSC
 	
+	If pName="" {
+		Set pName=$E(pPivot,1,*-6)
+	}
+	
 	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat,pName)
 	
 	If $$$ISERR(tSC) Quit tSC
