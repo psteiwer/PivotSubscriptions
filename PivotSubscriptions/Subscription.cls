@@ -19,6 +19,8 @@ Property Emails As %String;
 
 Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
 
+Property Name As %String;
+
 Storage Default
 {
 <Data name="SubscriptionDefaultData">
@@ -48,6 +50,9 @@ Storage Default
 </Value>
 <Value name="9">
 <Value>Version</Value>
+</Value>
+<Value name="10">
+<Value>Name</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>
