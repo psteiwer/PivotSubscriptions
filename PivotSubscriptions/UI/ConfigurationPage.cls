@@ -65,23 +65,23 @@ Method %OnGetProductName() As %String [ Internal ]
 
 Method %OnAfterCreatePage() As %Status
 {
-	Set ..%GetComponentById("AdminEmailLabel").value = $$$TextJS("Send error email notification to:")
-	Set ..%GetComponentById("HTTPLabel").value = $$$TextJS("HTTP or HTTPS?")
-	Set ..%GetComponentById("ServerLabel").value = $$$TextJS("Server")
-	Set ..%GetComponentById("PortLabel").value = $$$TextJS("Port Number")
+	Set ..%GetComponentById("AdminEmailLabel").value=$$$TextJS("Send error email notification to:")
+	Set ..%GetComponentById("HTTPLabel").value=$$$TextJS("HTTP or HTTPS?")
+	Set ..%GetComponentById("ServerLabel").value=$$$TextJS("Server")
+	Set ..%GetComponentById("PortLabel").value=$$$TextJS("Port Number")
 	
 	// check if each global is instantiated and set only if they aren't empty or nonexsistent
-	If $G(^PivotSubscriptions.Settings("AdminEmail")) '= "" {
-		Set ..%GetComponentById("AdminEmailText").value = ^PivotSubscriptions.Settings("AdminEmail")
+	If $G(^PivotSubscriptions.Settings("AdminEmail"))'="" {
+		Set ..%GetComponentById("AdminEmailText").value=^PivotSubscriptions.Settings("AdminEmail")
 	}
-	If $G(^PivotSubscriptions.Settings("Http")) '= "" {
-		Set ..%GetComponentById("HTTPButton").value = ^PivotSubscriptions.Settings("Http")
+	If $G(^PivotSubscriptions.Settings("Http"))'="" {
+		Set ..%GetComponentById("HTTPButton").value=^PivotSubscriptions.Settings("Http")
 	}
-	If $G(^PivotSubscriptions.Settings("Server")) '= "" {
-		Set ..%GetComponentById("ServerText").value = ^PivotSubscriptions.Settings("Server")
+	If $G(^PivotSubscriptions.Settings("Server"))'="" {
+		Set ..%GetComponentById("ServerText").value=^PivotSubscriptions.Settings("Server")
 	}
-	If $G(^PivotSubscriptions.Settings("Port")) '= "" {
-		Set ..%GetComponentById("PortText").value = ^PivotSubscriptions.Settings("Port")
+	If $G(^PivotSubscriptions.Settings("Port"))'="" {
+		Set ..%GetComponentById("PortText").value=^PivotSubscriptions.Settings("Port")
 	}
 	
 	Quit $$$OK

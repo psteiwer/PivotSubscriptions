@@ -64,10 +64,10 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("SubscriptionName").value=tSubscription.Name
 	}
 
-	Set tTable = ..%GetComponentById("PivotTable")
+	Set tTable=..%GetComponentById("PivotTable")
 	Set tTable.label="Subscription source: """_$ZCONVERT(..pivotName,"I","HTML")_""""
 
-	Set tOK = ..%GetComponentById("btnOK")
+	Set tOK=..%GetComponentById("btnOK")
 	Set tOK.caption="Save"
 
 	Quit $$$OK
@@ -89,7 +89,6 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var pivot=this.pivotName;
 		
 		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name);
-		
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -105,7 +104,7 @@ ClientMethod getDialogValue() [ Language = javascript ]
 Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
-	Set tLog = $$$OK
+	Set tLog=$$$OK
 	
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
@@ -123,16 +122,16 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSubscription.Name=pName
 	Set tSC=tSubscription.%Save()
 	
-	If $$$ISERR(tSC) { Quit tSC }
+	If $$$ISERR(tSC) Quit tSC
 	
 	// log new values into event log instead of old values, as well as logging after a successful save
 	If tSC {
 		If pSubscriptionId '= 0 {
 			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("update", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
-			If $$$ISERR(tLog) { Quit tLog }
+			If $$$ISERR(tLog) Quit tLog
 		} Else {
 			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("creation", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
-			If $$$ISERR(tLog) { Quit tLog }
+			If $$$ISERR(tLog) Quit tLog
 		}
 	}
 	

@@ -37,22 +37,22 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
-ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute,pName) As %Status {
-	
-	Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
-	
+ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute,pName) As %Status
+{
+	Set tSC=$$$OK
+
+	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If pName="" {
 		Set pName=$E(pPivot,1,*-6)
 	}
 	
-	Set tSC = ##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat,pName)
-	
+	Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat,pName)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If '(##class(PivotSubscriptions.Utility).CheckTable(pName)) {
-		Set tSC = ##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
+		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
 		If $$$ISERR(tSC) Quit tSC
 	}
 	
@@ -62,7 +62,7 @@ ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String, pName As %String) As %Status
 {	
 	Set tSC=$$$OK
-	Set tFilename = ""
+	Set tFilename=""
 	
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	
@@ -90,20 +90,19 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String,
 		Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(tFilename,.pParms)
 	}
-	
 	If $$$ISERR(tSC) Quit tSC
 
 	// Generate email
 	If tSC {
 		// check whether the table generated is too wide/truncated AND whether the table has data
-		Set tableStatus = ##class(PivotSubscriptions.Utility).CheckTable(pName)
+		Set tableStatus=##class(PivotSubscriptions.Utility).CheckTable(pName)
 	
 		Set server=##class(%Net.SMTP).%New()
-		Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
+		Set server.smtpserver=##class(%SYS.Task.Config).GetData("MailServer")
 		Set msg=##class(%Net.MailMessage).%New()
 		Set msg.From="PivotSubscriptions"
 		
-		Set validAdminEmail = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+		Set validAdminEmail=##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
 		
 		If validAdminEmail {
 			Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail")
@@ -123,17 +122,16 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String,
 			If ((pFormat = "PDF") && (tableStatus)) {
 				Set tFilename = $EXTRACT(tFilename,1,$LENGTH(tFilename)-3) _ "pdf"
 				Do ##class(%DeepSee.Utils).%ExportPDFToFile(tFilename,.pParms)
-			} ElseIf ('tableStatus) {
+			} ElseIf 'tableStatus {
 				// Check if both configuration settings for admin email is valid before sending error message
-				If ( validAdminEmail ) {
+				If validAdminEmail {
 					Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"),pName)
 				}
 			}
 			
 			Set status=msg.AttachFile("",tFilename)
 
-			If $$$ISERR(status) 
-			{
+			If $$$ISERR(status) {
 				Do $System.Status.DisplayError(status)
 				Quit $$$ERROR()
 			}

@@ -63,17 +63,18 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 {
 	switch(popupName) {
 		case 'switchNamespace':
-			var homeurl = zenLink("/csp/sys/%25CSP.Portal.Home.zen");
-			var url = zenPage.GetNewURL(value,"PivotSubscriptions.UI.SubscriptionManager.cls");
-			if (url == "" || value == "%SYS") url = homeurl;
-			self.document.location = url;
+			var homeurl=zenLink("/csp/sys/%25CSP.Portal.Home.zen");
+			var url=zenPage.GetNewURL(value,"PivotSubscriptions.UI.SubscriptionManager.cls");
+			if ((url=="") || (value=="%SYS")) {
+				url=homeurl;
+			}
+			self.document.location=url;
 			break;
 		case 'PivotSubscriptions':
 			if (action=="okay") {
 				try {
-					self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
-				}
-				catch(ex) {
+					self.document.location=zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
+				} catch(ex) {
 				}
 			}
 			var table=zenPage.getComponentById('table');
@@ -100,9 +101,8 @@ ClientMethod deleteSubscription(pId) [ Language = javascript ]
 		if (confirm($$$Text('Do you really wish to delete this subscription?'))) {
 			this.Delete(pId)
 			try {
-				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
-			}
-			catch(ex) {
+				self.document.location=zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
+			} catch(ex) {
 			}
 		}
 	}
@@ -113,14 +113,13 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 {
 	if (pId!="") {
 		// todo; parameterize default email
-		var email = prompt("Do you really wish to send this subscription to this email?", this.GetManagerEmail());
+		var email=prompt("Do you really wish to send this subscription to this email?", this.GetManagerEmail());
 		
-		if (email != null && email != "") {
+		if ((email!=null) && (email!="")) {
 			this.SendNow(pId,pPivot,email)
 			try {
-				self.document.location = zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
-			}
-			catch(ex) {
+				self.document.location=zenLink('PivotSubscriptions.UI.SubscriptionManager.cls');
+			} catch(ex) {
 			}
 		}
 		
@@ -130,16 +129,17 @@ ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
 /// Delete a subscription.
 Method Delete(pId As %Integer) As %String [ ZenMethod ]
 {
-	Set tMsg = "Subscription Deleted."
+	Set tSC=$$$OK
+	Set tMsg="Subscription Deleted."
 	
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
+	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
 	
-	If $$$ISERR(tLog) { Quit tSC }
+	If $$$ISERR(tSC) Quit tSC
 	
 	Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(pId)
 	If $$$ISERR(tSC) {
-		Set tMsg = $System.Status.GetErrorText(tSC)
+		Set tMsg=$System.Status.GetErrorText(tSC)
 	}
 	
 	Quit tMsg
@@ -148,14 +148,14 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 /// Send the selected subscription by calling the SendEmail Class Method of Task
 Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 {
-	Set tMsg = "Subscription Sent."
+	Set tMsg="Subscription Sent."
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
 		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
 	
 		If $$$ISERR(tSC) {
-			Set tMsg = $System.Status.GetErrorText(tSC)
+			Set tMsg=$System.Status.GetErrorText(tSC)
 		}
 	}
 
@@ -164,9 +164,9 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 
 Method GetManagerEmail() As %String [ ZenMethod ]
 {
-	Set tSC = ##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+	Set tSC=##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
 	
-	If (tSC) {
+	If tSC {
 		Quit ^PivotSubscriptions.Settings("AdminEmail")
 	}
 	

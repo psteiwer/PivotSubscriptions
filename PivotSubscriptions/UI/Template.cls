@@ -6,13 +6,13 @@ Parameter DOMAIN = "PivotSubscriptions";
 /// Get information to display in the ribbon bar.
 Method OnGetRibbonInfo(Output pDisplay As %Boolean, Output pViewIcons As %List, Output pSortOptions As %List, Output pSearchBox As %Boolean, Output pRibbonTitle As %String, Output pCommands As %List) As %Status
 {
-	Set pDisplay = 1
-	Set pSearchBox = 0
-	Set pRibbonTitle = $$$Text(..#PAGENAME)
+	Set pDisplay=1
+	Set pSearchBox=0
+	Set pRibbonTitle=$$$Text(..#PAGENAME)
 
-	Set pCommands($I(pCommands)) = $LB("subscriptionManager",$$$Text("Subscription Manager"),$$$Text("Manage Pivot Subscriptions"),"zenPage.navigate('subscriptionManager');")
-	Set pCommands($I(pCommands)) = $LB("pivotList",$$$Text("Pivot List"),$$$Text("View All Pivot Tables"),"zenPage.navigate('pivotList');")
-	Set pCommands($I(pCommands)) = $LB("configurationPage",$$$Text("Configuration Page"),$$$Text("Configure Settings"),"zenPage.navigate('configurationPage');")
+	Set pCommands($I(pCommands))=$LB("subscriptionManager",$$$Text("Subscription Manager"),$$$Text("Manage Pivot Subscriptions"),"zenPage.navigate('subscriptionManager');")
+	Set pCommands($I(pCommands))=$LB("pivotList",$$$Text("Pivot List"),$$$Text("View All Pivot Tables"),"zenPage.navigate('pivotList');")
+	Set pCommands($I(pCommands))=$LB("configurationPage",$$$Text("Configuration Page"),$$$Text("Configure Settings"),"zenPage.navigate('configurationPage');")
 	
 	Quit $$$OK
 }

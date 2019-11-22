@@ -29,23 +29,23 @@ Property Name As %String;
 /// Takes in info about an Alert Task and logs the information to the TaskLog
 ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Status
 {
-	Set tSC = $$$OK
+	Set tSC=$$$OK
 	
-	Set tEventLog = ##class(PivotSubscriptions.EventLog).%New()
-	Set tEventLog.EventType = pEvent
-	Set tEventLog.TimeStamp = $zdt($h, 3, 1)
-	Set tEventLog.UserName = pUser
-	Set tEventLog.Pivot = pPivot
-	Set tEventLog.Name = pName
+	Set tEventLog=##class(PivotSubscriptions.EventLog).%New()
+	Set tEventLog.EventType=pEvent
+	Set tEventLog.TimeStamp=$zdt($h, 3, 1)
+	Set tEventLog.UserName=pUser
+	Set tEventLog.Pivot=pPivot
+	Set tEventLog.Name=pName
 
-	Set tEventLog.DayOfWeek = pDayOfWeek
-	Set tEventLog.Hour = pHour
-	Set tEventLog.Minute = pMinute
+	Set tEventLog.DayOfWeek=pDayOfWeek
+	Set tEventLog.Hour=pHour
+	Set tEventLog.Minute=pMinute
 	
-	Set tEventLog.Format = pFormat
-	Set tEventLog.Emails = pEmails
+	Set tEventLog.Format=pFormat
+	Set tEventLog.Emails=pEmails
 
-	Set tSC = tEventLog.%Save()
+	Set tSC=tEventLog.%Save()
 	
 	Quit tSC
 }
