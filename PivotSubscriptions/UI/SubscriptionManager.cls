@@ -28,6 +28,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	valueColumn="ID"
 	>
 <column colName="ID" header="Subscription ID" hidden="true" />
+<column id="Name" colName="Name" header="Name" filterType="text" filterOp="UP[" />
 <column id="Pivot" colName="Pivot" header="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#" filterType="text" filterOp="UP[" />
 <column id="Emails" colName="Emails" header="Emails" filterType="text" filterOp="UP[" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
@@ -132,7 +133,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	Set tMsg = "Subscription Deleted."
 	
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails)
+	Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
 	
 	If $$$ISERR(tLog) { Quit tSC }
 	
@@ -151,7 +152,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute)
+		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
 	
 		If $$$ISERR(tSC) {
 			Set tMsg = $System.Status.GetErrorText(tSC)
@@ -175,7 +176,7 @@ Method GetManagerEmail() As %String [ ZenMethod ]
 /// Query to get subscriptions for Subscription Manager display table.
 Query GetSubscriptionsForDisplay() As %SQLQuery
 {
-	SELECT ID,Pivot,Emails FROM PivotSubscriptions.Subscription
+	SELECT ID,Name,Pivot,Emails FROM PivotSubscriptions.Subscription
 }
 
 }

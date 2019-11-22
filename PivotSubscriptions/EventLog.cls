@@ -24,8 +24,10 @@ Property Format As %String(VALUELIST = ",Excel,PDF");
 
 Property Emails As %String;
 
+Property Name As %String;
+
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails) As %Status
+ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Status
 {
 	Set tSC = $$$OK
 	
@@ -34,6 +36,7 @@ ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat,
 	Set tEventLog.TimeStamp = $zdt($h, 3, 1)
 	Set tEventLog.UserName = pUser
 	Set tEventLog.Pivot = pPivot
+	Set tEventLog.Name = pName
 
 	Set tEventLog.DayOfWeek = pDayOfWeek
 	Set tEventLog.Hour = pHour
@@ -82,6 +85,9 @@ Storage Default
 </Value>
 <Value name="11">
 <Value>Emails</Value>
+</Value>
+<Value name="12">
+<Value>Name</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.EventLogD</DataLocation>
