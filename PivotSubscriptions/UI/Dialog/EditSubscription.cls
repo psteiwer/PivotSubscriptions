@@ -39,7 +39,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses." cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
 <hgroup>
 	<listBox id="EmailList" listWidth="410px"/>
-	<vgroup>
+	<vgroup valign="top">
 		<image src="deepsee/close_a_16.png" width="16" height="16" title="Remove the selected email address" onclick="zenPage.removeEmail();"/>
 	</vgroup>
 </hgroup>
