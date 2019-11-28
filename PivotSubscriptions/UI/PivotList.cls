@@ -57,7 +57,7 @@ Method ExecuteRS(pRS As %ResultSet, Output pSC As %Status, pInfo As %ZEN.Auxilia
 ClientMethod launchAddSubscription(pivotName) [ Language = javascript ]
 {
 	var url=zenLink('PivotSubscriptions.UI.Dialog.EditSubscription.zen')+'?SUBSCRIPTIONID=0&PIVOTNAME='+encodeURIComponent(pivotName);
-	zenPage.launchPopupWindow(url,'Add Subscription','status,scrollbars,resizable,width=750,height=500');
+	zenPage.launchPopupWindow(url,'Add Subscription','status,scrollbars,resizable,width=700,height=575');
 }
 
 ClassMethod DrawAddSubscriptionLink(pTable As %ZEN.Component.tablePane, pName As %String, pSeed As %String) As %Status [ Internal ]
