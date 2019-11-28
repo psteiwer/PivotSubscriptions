@@ -36,7 +36,13 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45"/>
 </hgroup>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
-<textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses."/>
+<textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses." cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
+<hgroup>
+	<listBox id="EmailList" listWidth="410px"/>
+	<vgroup valign="top">
+		<image src="deepsee/close_a_16.png" width="16" height="16" title="Remove the selected email address" onclick="zenPage.removeEmail();"/>
+	</vgroup>
+</hgroup>
 </pane>
 }
 
@@ -69,6 +75,17 @@ Method %OnAfterCreatePage() As %Status
 
 	Set tOK=..%GetComponentById("btnOK")
 	Set tOK.caption="Save"
+	
+	// Populate Email List
+	Set tEmails=..%GetComponentById("Emails")
+	Set tEmailList=..%GetComponentById("EmailList")
+	For emailCount=1:1:$Length(tEmails.value,",") {
+		Set tOption=##class(%ZEN.Auxiliary.option).%New()
+		Set tOption.value=$Piece(tEmails.value,",",emailCount)
+		Set tOption.text=$Piece(tEmails.value,",",emailCount)
+		Do tEmailList.options.Insert(tOption)
+		Do ..%AddComponent(tOption)
+	}
 
 	Quit $$$OK
 }
@@ -136,6 +153,47 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	}
 	
 	Quit tSC
+}
+
+ClientMethod populateEmailList() [ Language = javascript ]
+{
+	var emailList=zen('EmailList');
+	emailList.resetOptions();
+	
+	var emailText=zen('Emails');
+	var emailsString=emailText.value;
+	var emailsArray=emailsString.split(",")
+	for (i=0;i<emailsArray.length;i++) {
+		emailList.appendOption(emailsArray[i],emailsArray[i]);
+	}
+}
+
+/// User clicked the Remove image. Remove the field from Field List box.
+ClientMethod removeEmail() [ Language = javascript ]
+{
+	var emailList=zen('EmailList');
+	var emailText=zen('Emails');
+	var count=emailList.getOptionCount();
+	if (count==0) return;
+	var pos=emailList.getProperty("selectedIndex");
+	if (pos<0) {
+		alert($$$Text("Please select the field you want to remove and try again."));
+		return;
+	}
+	
+	var removeValue=emailList.getOptionValue(pos);
+	var emailTextValue=emailText.value;
+	
+	if (pos==0) {
+		emailTextValue=emailTextValue.substring(removeValue.length+1,emailTextValue.length);
+	} else {
+		var removePos=emailTextValue.indexOf(","+removeValue);
+		emailTextValue=emailTextValue.substring(0,removePos)+emailTextValue.substring(removeValue.length+removePos+1,emailTextValue.length);
+	}
+	
+	emailText.setValue(emailTextValue);
+	emailList.removeOption(pos);
+	emailList.setProperty("selectedIndex",-1);
 }
 
 }

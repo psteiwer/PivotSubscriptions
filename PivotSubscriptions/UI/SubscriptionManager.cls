@@ -91,7 +91,7 @@ ClientMethod editSubscription(pId,pPivot) [ Internal, Language = javascript ]
 			MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=750,height=500',parms);
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=700,height=575',parms);
 }
 
 /// Delete the selected subscription.

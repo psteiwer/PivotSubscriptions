@@ -15,7 +15,7 @@ Property Minute As %Integer(VALUELIST=",0,15,30,45");
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
-Property Emails As %String;
+Property Emails As %String(MAXLEN="");
 
 Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
 
