@@ -19,7 +19,7 @@ Property Emails As %String(MAXLEN="");
 
 Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
 
-Property Name As %String;
+Property Name As %String(MAXLEN=100);
 
 Storage Default
 {
