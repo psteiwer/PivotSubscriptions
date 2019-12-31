@@ -15,9 +15,11 @@ Property Minute As %Integer(VALUELIST=",0,15,30,45");
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
-Property Emails As %String;
+Property Emails As %String(MAXLEN="");
 
 Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
+
+Property Name As %String(MAXLEN=100);
 
 Storage Default
 {
@@ -48,6 +50,9 @@ Storage Default
 </Value>
 <Value name="9">
 <Value>Version</Value>
+</Value>
+<Value name="10">
+<Value>Name</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>

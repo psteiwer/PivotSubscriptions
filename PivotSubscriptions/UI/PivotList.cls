@@ -51,13 +51,13 @@ Method %OnGetPageName() As %String [ Internal ]
 
 Method ExecuteRS(pRS As %ResultSet, Output pSC As %Status, pInfo As %ZEN.Auxiliary.QueryInfo) As %Boolean
 {
-	quit pRS.%Execute($G(pInfo.filters("POwner")),$G(pInfo.filters("PName")))
+	Quit pRS.%Execute($G(pInfo.filters("POwner")),$G(pInfo.filters("PName")))
 }
 
 ClientMethod launchAddSubscription(pivotName) [ Language = javascript ]
 {
-	var url = zenLink('PivotSubscriptions.UI.Dialog.EditSubscription.zen')+'?SUBSCRIPTIONID=0&PIVOTNAME='+encodeURIComponent(pivotName);
-	zenPage.launchPopupWindow(url,'Add Subscription','status,scrollbars,resizable,width=750,height=500');
+	var url=zenLink('PivotSubscriptions.UI.Dialog.EditSubscription.zen')+'?SUBSCRIPTIONID=0&PIVOTNAME='+encodeURIComponent(pivotName);
+	zenPage.launchPopupWindow(url,'Add Subscription','status,scrollbars,resizable,width=700,height=575');
 }
 
 ClassMethod DrawAddSubscriptionLink(pTable As %ZEN.Component.tablePane, pName As %String, pSeed As %String) As %Status [ Internal ]
@@ -73,13 +73,13 @@ Query GetPivots(pOwner As %String = "", pName As %String = "") As %Query(ROWSPEC
 
 ClassMethod GetPivotsExecute(ByRef qHandle As %Binary, pOwner As %String = "", pName As %String = "") As %Status
 {
-	Set tSC = $$$OK
+	Set tSC=$$$OK
 	
-	Set tSC = ##class(%DeepSee.UserPortal.Utils).%GetFolderItemsForUser(.tItems,,,1,1)
+	Set tSC=##class(%DeepSee.UserPortal.Utils).%GetFolderItemsForUser(.tItems,,,1,1)
 	
-	If $$$ISERR(tSC) { Quit tSC }
+	If $$$ISERR(tSC) Quit tSC
 	
-	Set tItem = $O(tItems(""))
+	Set tItem=$O(tItems(""))
 	While tItem'="" {
 		If $LG(tItems(tItem),2)="Pivot" {
 			Set tTemp=tItems(tItem)
@@ -92,18 +92,18 @@ ClassMethod GetPivotsExecute(ByRef qHandle As %Binary, pOwner As %String = "", p
 			Set:tTemp'="" tPivots($I(tPivots))=tTemp  // Sort by pivot ID
 			//Set:tTemp'="" tPivots($LG(tTemp,1))=tTemp  // Sort by pivot name
 		}
-		Set tItem = $O(tItems(tItem))
+		Set tItem=$O(tItems(tItem))
 	}
 	
 	Merge ^||PivotSubscriptions.getPivotExecute=tPivots
-    set qHandle=""
+    Set qHandle=""
     Quit $$$OK
 }
 
 ClassMethod GetPivotsFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef AtEnd As %Integer = 0) As %Status [ PlaceAfter = GetPivotsExecute ]
 {
-    set qHandle=$O(^||PivotSubscriptions.getPivotExecute(qHandle))
-    if qHandle="" {
+    Set qHandle=$O(^||PivotSubscriptions.getPivotExecute(qHandle))
+    If qHandle="" {
 	    Set AtEnd=1
 	    Quit $$$OK
     }
