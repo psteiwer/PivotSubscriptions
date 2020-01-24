@@ -28,3 +28,17 @@ To ensure that links to the SubscriptionManager page are correctly generated, th
 
 ### Configure Task Manager Email Settings
 Subscriptions are delivered by Email. The Task Manager Email must be configured to allow alerts to be delivered by Email. At a minimum, the SMTP Server must be assigned in the Task Manager Email Settings (Management Portal -> System Administration -> Configuration -> Additional Settings -> Task Manager Email). For more information, please see the <a href="http://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=RACS_Category_TaskManagerEmail">documentation</a>.
+
+### Optional: Custom Action
+The Piovt List page gives access to a list of Pivot Tables available to the user. From there, a Pivot Subscription can be added. However, if you would like to add a Pivot Subscription directly from Analyzer or from a Dashboard, you will need to configure a new Custom Action. In order to add the Custom Action, an Action Class is first needed. For more information, please see the <a href="http://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=D2IMP_ch_action">documentation</a> for defining custom actions. In your Action KPI, define the new action as:
+```
+<action name="AddPivotSubscription" displayName="AddPivotSubscription"/>
+```
+Additionally in your Action KPI, define the new condition in %OnDashboardAction as:
+```
+If (pAction="AddPivotSubscription") {
+	Set pContext.command = ##class(PivotSubscriptions.Utility).ActionCommand(.pContext)
+}
+```
+
+The ActionCommand Method will generate a command that will allow for the creation of the Pivot Subscription
