@@ -7,7 +7,8 @@ ClassMethod GetVersion() As %String
 }
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort) {
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort)
+{
 	Set ^PivotSubscriptions.Settings("AdminEmail")=pAdminEmail
 	Set ^PivotSubscriptions.Settings("Http")=pHttp
 	Set ^PivotSubscriptions.Settings("Server")=pServer
@@ -27,7 +28,7 @@ ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 	Quit 0
 }
 
-ClassMethod GenerateLink(ByRef link As %String) As %Status 
+ClassMethod GenerateLink(ByRef link As %String) As %Status
 {
 	Set tSC=$$$OK
 	
@@ -184,6 +185,16 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 	Set tSC=server.Send(msg)
 	
 	Quit tSC
+}
+
+ClassMethod ActionCommand(ByRef pContext As %ZEN.proxyObject) As %String
+{
+	Set tCommand=""
+	If pContext.dataSource'="" {
+		Set tCommand="popup:PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID=0&PIVOTNAME="_$zconvert(pContext.dataSource,"O","URL")
+	}
+
+	Quit tCommand
 }
 
 }
