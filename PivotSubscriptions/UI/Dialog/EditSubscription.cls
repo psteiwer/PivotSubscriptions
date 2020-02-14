@@ -216,7 +216,12 @@ ClientMethod customFilter() [ Language = javascript ]
 	// Get any existing custom filters
 
 	// Use AdvancedFilter to allow custom filter to be added
-	
+	var parms = {
+		CUBE:cubeName,
+		EXPRESSION:''
+	};
+	zenLaunchPopupWindow('_DeepSee.UI.Dialog.AdvancedFilter.zen','CustomFilter','status=no,scrollbars,resizable=yes,width=900,height=600',parms,this);
+
 	// Get return value from AdvancedFilter
 
 	// Update Subscription to use custom filter
