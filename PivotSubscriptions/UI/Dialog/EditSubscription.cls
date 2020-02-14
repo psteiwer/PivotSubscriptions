@@ -41,6 +41,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<listBox id="EmailList" listWidth="410px"/>
 	<vgroup valign="top">
 		<image src="deepsee/close_a_16.png" width="16" height="16" title="Remove the selected email address" onclick="zenPage.removeEmail();"/>
+		<image src="deepsee/ds2_magnify_18.png" width="16" height="16" title="Add custom filter" onclick="zenPage.customFilter();"/>
 	</vgroup>
 </hgroup>
 </pane>
