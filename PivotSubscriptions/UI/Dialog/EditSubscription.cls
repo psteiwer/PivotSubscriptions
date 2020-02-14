@@ -211,14 +211,26 @@ ClientMethod customFilter() [ Language = javascript ]
 	var emailValue=emailList.getOptionValue(pos);
 
 	// Get Cube Name for pivot
+	var cubeName=zenPage.GetPivotCube(..pivotName)
 
 	// Get any existing custom filters
 
 	// Use AdvancedFilter to allow custom filter to be added
-
+	
 	// Get return value from AdvancedFilter
 
 	// Update Subscription to use custom filter
+}
+
+Method GetPivotCube(pPivot) As %String
+{
+	Set tCube=""
+
+	// Add error handling?
+	Do ##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0,,.tRS)
+	Set tCube=tRS.%GetCubeName
+
+	Quit tCube
 }
 
 }
