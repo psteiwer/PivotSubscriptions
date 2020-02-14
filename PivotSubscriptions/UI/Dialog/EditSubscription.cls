@@ -197,4 +197,28 @@ ClientMethod removeEmail() [ Language = javascript ]
 	emailList.setProperty("selectedIndex",-1);
 }
 
+ClientMethod customFilter() [ Language = javascript ]
+{
+	var emailList=zen('EmailList');
+	var count=emailList.getOptionCount();
+	if (count==0) return;
+	var pos=emailList.getProperty("selectedIndex");
+	if (pos<0) {
+		alert($$$Text("Please select the email you want to add a custom filter for and try again."));
+		return;
+	}
+
+	var emailValue=emailList.getOptionValue(pos);
+
+	// Get Cube Name for pivot
+
+	// Get any existing custom filters
+
+	// Use AdvancedFilter to allow custom filter to be added
+
+	// Get return value from AdvancedFilter
+
+	// Update Subscription to use custom filter
+}
+
 }
