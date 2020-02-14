@@ -41,7 +41,7 @@ ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %
 {
 	Set tSC=$$$OK
 
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
+	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If pName="" {
