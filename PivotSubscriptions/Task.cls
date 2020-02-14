@@ -37,18 +37,24 @@ Method OnTask() As %Status
 	Quit tSC
 }
 
-ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String,pDayOfWeek,pHour,pMinute,pName) As %Status
+ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %String, pDayOfWeek, pHour, pMinute, pName) As %Status
 {
 	Set tSC=$$$OK
 
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
+	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If pName="" {
 		Set pName=$E(pPivot,1,*-6)
 	}
 	
-	Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat,pName)
+	Try {
+		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pPivot,pEmails,pFormat,pName)
+	} Catch ex {
+		Set tSC=ex.AsStatus()
+	}
+	// Update send event with status and end time
+	Set tSC=pEvent.LogUpdate(tSC)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If '(##class(PivotSubscriptions.Utility).CheckTable(pName)) {
@@ -60,7 +66,7 @@ ClassMethod SendSubscription(pPivot As %String, pEmails As %String, pFormat As %
 }
 
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String, pName As %String) As %Status
-{	
+{
 	Set tSC=$$$OK
 	Set tFilename=""
 	
