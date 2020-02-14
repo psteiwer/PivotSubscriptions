@@ -41,6 +41,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<listBox id="EmailList" listWidth="410px"/>
 	<vgroup valign="top">
 		<image src="deepsee/close_a_16.png" width="16" height="16" title="Remove the selected email address" onclick="zenPage.removeEmail();"/>
+		<image src="deepsee/ds2_magnify_18.png" width="16" height="16" title="Add custom filter" onclick="zenPage.customFilter();"/>
 	</vgroup>
 </hgroup>
 </pane>
@@ -121,7 +122,7 @@ ClientMethod getDialogValue() [ Language = javascript ]
 Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
-	
+  
 	Set tEventType=""
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
@@ -186,6 +187,47 @@ ClientMethod removeEmail() [ Language = javascript ]
 	emailText.setValue(emailTextValue);
 	emailList.removeOption(pos);
 	emailList.setProperty("selectedIndex",-1);
+}
+
+ClientMethod customFilter() [ Language = javascript ]
+{
+	var emailList=zen('EmailList');
+	var count=emailList.getOptionCount();
+	if (count==0) return;
+	var pos=emailList.getProperty("selectedIndex");
+	if (pos<0) {
+		alert($$$Text("Please select the email you want to add a custom filter for and try again."));
+		return;
+	}
+
+	var emailValue=emailList.getOptionValue(pos);
+
+	// Get Cube Name for pivot
+	var cubeName=zenPage.GetPivotCube(this.pivotName)
+
+	// Get any existing custom filters
+
+	// Use AdvancedFilter to allow custom filter to be added
+	var parms = {
+		CUBE:cubeName,
+		EXPRESSION:''
+	};
+	zenLaunchPopupWindow('_DeepSee.UI.Dialog.AdvancedFilter.zen','CustomFilter','status=no,scrollbars,resizable=yes,width=900,height=600',parms,this);
+
+	// Get return value from AdvancedFilter
+
+	// Update Subscription to use custom filter
+}
+
+Method GetPivotCube(pPivot) As %String [ ZenMethod ]
+{
+	Set tCube=""
+
+	// Add error handling?
+	Do ##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0,,.tRS)
+	Set tCube=tRS.%GetCubeName()
+
+	Quit tCube
 }
 
 }
