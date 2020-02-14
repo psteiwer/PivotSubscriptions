@@ -158,7 +158,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 
 ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), "", pEmail, pName)
+	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("send", $username, pPivot, $ZDATE($HOROLOG,10), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1), $PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2), "", pEmail, pName, .pEvent)
 	
 	If $$$ISERR(tLog) Quit tLog
 	
@@ -183,6 +183,7 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 			
 	// Send email
 	Set tSC=server.Send(msg)
+	Set tSC=pEvent.LogUpdate(tSC)
 	
 	Quit tSC
 }

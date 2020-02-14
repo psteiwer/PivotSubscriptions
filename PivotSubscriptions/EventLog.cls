@@ -2,13 +2,15 @@
 Class PivotSubscriptions.EventLog Extends %Persistent
 {
 
-/// Event Type covers: creation, update, deletion and sent email subscriptions
 /* 
  * Only possible values are creation, update, deletion, send, and tableError
  */
-Property EventType As %String (VALUELIST=",creation,update,deletion,send,tableError");
+/// Event Type covers: creation, update, deletion and sent email subscriptions
+Property EventType As %String(VALUELIST = ",creation,update,deletion,send,tableError");
 
-Property TimeStamp As %TimeStamp [ InitialExpression = {$zdt($h, 3, 1)} ];
+Property StartTime As %TimeStamp [ InitialExpression = {$zdt($h, 3, 1)} ];
+
+Property EndTime As %TimeStamp;
 
 Property UserName As %String(MAXLEN = 128) [ InitialExpression = {$username} ];
 
@@ -16,9 +18,9 @@ Property Pivot As %String(MAXLEN = 512);
 
 Property DayOfWeek As %String;
 
-Property Hour As %Integer(MINVAL=0, MAXVAL=23);
+Property Hour As %Integer(MAXVAL = 23, MINVAL = 0);
 
-Property Minute As %Integer (MINVAL=0, MAXVAL=59);
+Property Minute As %Integer(MAXVAL = 59, MINVAL = 0);
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
@@ -26,14 +28,15 @@ Property Emails As %String;
 
 Property Name As %String;
 
+Property Status As %Status;
+
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Status
+ClassMethod LogEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
 {
 	Set tSC=$$$OK
 	
 	Set tEventLog=##class(PivotSubscriptions.EventLog).%New()
-	Set tEventLog.EventType=pEvent
-	Set tEventLog.TimeStamp=$zdt($h, 3, 1)
+	Set tEventLog.EventType=pType
 	Set tEventLog.UserName=pUser
 	Set tEventLog.Pivot=pPivot
 	Set tEventLog.Name=pName
@@ -46,7 +49,19 @@ ClassMethod LogEvent(pEvent, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat,
 	Set tEventLog.Emails=pEmails
 
 	Set tSC=tEventLog.%Save()
+	Set pEvent=tEventLog
 	
+	Quit tSC
+}
+
+Method LogUpdate(pStatus) As %Status
+{
+	Set tSC=$$$OK
+
+	Set ..EndTime=$zdt($h,3,1)
+	Set ..Status=pStatus
+	Set tSC=..%Save()
+
 	Quit tSC
 }
 
@@ -60,7 +75,7 @@ Storage Default
 <Value>EventType</Value>
 </Value>
 <Value name="3">
-<Value>TimeStamp</Value>
+<Value>StartTime</Value>
 </Value>
 <Value name="4">
 <Value>UserName</Value>
@@ -88,6 +103,12 @@ Storage Default
 </Value>
 <Value name="12">
 <Value>Name</Value>
+</Value>
+<Value name="13">
+<Value>EndTime</Value>
+</Value>
+<Value name="14">
+<Value>Status</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.EventLogD</DataLocation>
