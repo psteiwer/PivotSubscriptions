@@ -198,4 +198,53 @@ ClassMethod ActionCommand(ByRef pContext As %ZEN.proxyObject) As %String
 	Quit tCommand
 }
 
+ClassMethod ExecuteForSubscription(pMDX, pCustomFilter = "", ByRef pHasResults = 0) As %Status
+{
+	Set tSC=$$$OK
+
+	If pCustomFilter'="" {
+		Set pMDX=pMDX_" %FILTER "_pCustomFilter
+	}
+
+	// Execute MDX to see if there are results
+	Set pHasResults=0
+	Set tRS=##class(%DeepSee.ResultSet).%New()
+	Do tRS.%PrepareMDX(pMDX)
+	Do tRS.%Execute()
+	If tRS.%Query.queryType="DRILLTHROUGH" {
+		If tRS.listingRows>0 {
+			Set pHasResults=1
+		}
+	} Else {
+		If tRS.%GetGrandTotal()'=0 {
+			Set pHasResults=1
+		}
+	}
+
+	Quit tSC
+}
+
+ClassMethod GenerateFileForSubscription(pType = "Excel", pMDX, pCustomFilter, pName, pPivot, ByRef pFilename = "") As %Status
+{
+	Set tSC=$$$OK
+
+	If pCustomFilter'="" {
+		Set pMDX=pMDX_" %FILTER "_pCustomFilter
+	}
+
+	Set pParms("TITLE")=pName
+	Set pParms("SUBTITLE")=$E(pPivot,1,*-6)_". Report generated on "_$zd($h,6)
+	Set pParms("MDX")=pMDX
+	
+	If pType="Excel" {
+		Set pFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(pFilename,.pParms)
+	} Else {
+		Set pFilename = $EXTRACT(pFilename,1,$LENGTH(pFilename)-3) _ "pdf"
+		Do ##class(%DeepSee.Utils).%ExportPDFToFile(pFilename,.pParms)
+	}
+	
+	Quit tSC
+}
+
 }
