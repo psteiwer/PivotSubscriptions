@@ -282,10 +282,6 @@ ClientMethod customFilter() [ Language = javascript ]
 	};
 	// Can I hide the Apply button?
 	zenLaunchPopupWindow('_DeepSee.UI.Dialog.AdvancedFilter.zen','CustomFilter','status=no,scrollbars,resizable=yes,width=900,height=600',parms,this);
-
-	// Get return value from AdvancedFilter
-
-	// Update Subscription to use custom filter
 }
 
 Method GetPivotCube(pPivot) As %String [ ZenMethod ]
