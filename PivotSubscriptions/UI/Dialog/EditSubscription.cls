@@ -13,6 +13,10 @@ Property pivotName As %ZEN.Datatype.string(ZENURL = "PIVOTNAME");
 
 Property SubscriptionId As %ZEN.Datatype.integer(ZENURL = "SUBSCRIPTIONID");
 
+Property SelectedEmail As %String;
+
+Property CustomFilter As array Of %String;
+
 Parameter APPLYBUTTON = 0;
 
 /// This Style block contains page-specific CSS style definitions.
@@ -189,6 +193,26 @@ ClientMethod removeEmail() [ Language = javascript ]
 	emailList.setProperty("selectedIndex",-1);
 }
 
+ClientMethod onPopupAction(popupName, action, value) [ Language = javascript ]
+{
+	switch(popupName) {
+	case 'CustomFilter':
+		if ((action='ok')||(action='apply')) {
+			zenPage.SetCustomFilter(value);
+		}
+		break;
+	}
+}
+
+Method SetCustomFilter(pExpression) As %Status
+{
+	Set tSC=$$$OK
+
+	Set tSC=..CustomFilter.SetAt(pExpression,..SelectedEmail)
+
+	Quit tSC
+}
+
 ClientMethod customFilter() [ Language = javascript ]
 {
 	var emailList=zen('EmailList');
@@ -200,7 +224,9 @@ ClientMethod customFilter() [ Language = javascript ]
 		return;
 	}
 
+	// Get Email and store the value
 	var emailValue=emailList.getOptionValue(pos);
+	this.SelectedEmail=emailValue;
 
 	// Get Cube Name for pivot
 	var cubeName=zenPage.GetPivotCube(this.pivotName)
@@ -212,6 +238,7 @@ ClientMethod customFilter() [ Language = javascript ]
 		CUBE:cubeName,
 		EXPRESSION:''
 	};
+	// Can I hide the Apply button?
 	zenLaunchPopupWindow('_DeepSee.UI.Dialog.AdvancedFilter.zen','CustomFilter','status=no,scrollbars,resizable=yes,width=900,height=600',parms,this);
 
 	// Get return value from AdvancedFilter
