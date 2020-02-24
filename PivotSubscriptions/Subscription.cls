@@ -21,8 +21,15 @@ Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Ut
 
 Property Name As %String(MAXLEN = 100);
 
+Property CustomFilters As array Of %String;
+
 Storage Default
 {
+<Data name="CustomFilters">
+<Attribute>CustomFilters</Attribute>
+<Structure>subnode</Structure>
+<Subscript>"CustomFilters"</Subscript>
+</Data>
 <Data name="SubscriptionDefaultData">
 <Value name="1">
 <Value>%%CLASSNAME</Value>
