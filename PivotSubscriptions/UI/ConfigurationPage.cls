@@ -106,7 +106,7 @@ Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort) As %Status [ ZenMet
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utility).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort)
+	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort)
 	
 	Quit tSC
 }

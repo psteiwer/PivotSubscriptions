@@ -17,7 +17,7 @@ Property Format As %String(VALUELIST = ",Excel,PDF");
 
 Property Emails As %String(MAXLEN = "");
 
-Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
+Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utils).GetVersion()} ];
 
 Property Name As %String(MAXLEN = 100);
 

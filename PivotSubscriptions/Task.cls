@@ -58,7 +58,7 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 	Set tSC=pEvent.LogUpdate(tSC)
 	If $$$ISERR(tSC) Quit tSC
 	
-	If '(##class(PivotSubscriptions.Utility).CheckTable(pName)) {
+	If '(##class(PivotSubscriptions.Utils).CheckTable(pName)) {
 		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
 		If $$$ISERR(tSC) Quit tSC
 	}
@@ -81,24 +81,24 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 		Set tCustomFilter=tSubscription.CustomFilters.GetAt(tEmail)
-		Set tSC=##class(PivotSubscriptions.Utility).ExecuteForSubscription(mdx,tCustomFilter,.tHasResults)
+		Set tSC=##class(PivotSubscriptions.Utils).ExecuteForSubscription(mdx,tCustomFilter,.tHasResults)
 		
 		If tHasResults {
 			// Only generate file if requested pivot has results
-			Set tSC=##class(PivotSubscriptions.Utility).GenerateFileForSubscription("Excel",mdx,tCustomFilter,pName,pPivot,.tFilename)
+			Set tSC=##class(PivotSubscriptions.Utils).GenerateFileForSubscription("Excel",mdx,tCustomFilter,pName,pPivot,.tFilename)
 		}
 
 		// Generate email
 		If tSC {
 			// check whether the table generated is too wide/truncated AND whether the table has data
-			Set tableStatus=##class(PivotSubscriptions.Utility).CheckTable(pName)
+			Set tableStatus=##class(PivotSubscriptions.Utils).CheckTable(pName)
 		
 			Set server=##class(%Net.SMTP).%New()
 			Set server.smtpserver=##class(%SYS.Task.Config).GetData("MailServer")
 			Set msg=##class(%Net.MailMessage).%New()
 			Set msg.From="PivotSubscriptions"
 			
-			Set validAdminEmail=##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+			Set validAdminEmail=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
 			
 			If validAdminEmail {
 				Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail")
@@ -112,15 +112,15 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			If tHasResults {
 				
 				// Add attachment
-				Do ##class(PivotSubscriptions.Utility).WriteEmail(pName, msg, tableStatus)
+				Do ##class(PivotSubscriptions.Utils).WriteEmail(pName, msg, tableStatus)
 
 				// if table is too large, then just attach Excel instead
 				If ((pFormat = "PDF") && (tableStatus)) {
-					Set tSC=##class(PivotSubscriptions.Utility).GenerateFileForSubscription("PDF",mdx,tCustomFilter,pName,pPivot,.tFilename)
+					Set tSC=##class(PivotSubscriptions.Utils).GenerateFileForSubscription("PDF",mdx,tCustomFilter,pName,pPivot,.tFilename)
 				} ElseIf 'tableStatus {
 					// Check if both configuration settings for admin email is valid before sending error message
 					If validAdminEmail {
-						Do ##class(PivotSubscriptions.Utility).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"),pName)
+						Do ##class(PivotSubscriptions.Utils).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"),pName)
 					}
 				}
 				
@@ -131,9 +131,9 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 					Quit $$$ERROR()
 				}
 			} Else {
-				Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(msg)
+				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
 				Do msg.TextData.WriteLine("No data for requested pivot.")
-				Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(msg)
+				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 			}
 		}
 

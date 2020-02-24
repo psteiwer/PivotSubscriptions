@@ -37,7 +37,7 @@ The Piovt List page gives access to a list of Pivot Tables available to the user
 Additionally in your Action KPI, define the new condition in %OnDashboardAction as:
 ```
 If (pAction="AddPivotSubscription") {
-	Set pContext.command = ##class(PivotSubscriptions.Utility).ActionCommand(.pContext)
+	Set pContext.command = ##class(PivotSubscriptions.Utils).ActionCommand(.pContext)
 }
 ```
 

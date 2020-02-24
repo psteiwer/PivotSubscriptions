@@ -1,4 +1,4 @@
-Class PivotSubscriptions.Utility
+Class PivotSubscriptions.Utils
 {
 
 ClassMethod GetVersion() As %String
@@ -110,7 +110,7 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 /// Write footer for any email, including link generation
 ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 {
-	Do ##class(PivotSubscriptions.Utility).GenerateLink(.link)
+	Do ##class(PivotSubscriptions.Utils).GenerateLink(.link)
 
 	Do pMsg.TextData.WriteLine("</p></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
@@ -122,7 +122,7 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 /// Write improved email format for subscription, including embeded pivot table
 ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 {
-	Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(pMsg)
+	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
 	
 	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
@@ -153,7 +153,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
 	}
 
-	Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(pMsg)
+	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
 ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
@@ -174,9 +174,9 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 	Set msg.IsBinary=0
 	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
-	Do ##class(PivotSubscriptions.Utility).WriteEmailHeader(msg)
+	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
 	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
-	Do ##class(PivotSubscriptions.Utility).WriteEmailFooter(msg)
+	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
 	// Set recipient of email
 	Do msg.To.SetAt(pEmail,1)
