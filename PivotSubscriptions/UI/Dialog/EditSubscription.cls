@@ -236,7 +236,9 @@ Method SetCustomFilter(pExpression) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 
-	Set tSC=..CustomFilters.SetAt(pExpression,..SelectedEmail)
+	If pExpression'="" {
+		Set tSC=..CustomFilters.SetAt(pExpression,..SelectedEmail)
+	}
 
 	Quit tSC
 }
