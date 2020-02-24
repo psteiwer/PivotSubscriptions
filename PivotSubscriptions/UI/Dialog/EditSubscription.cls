@@ -97,6 +97,9 @@ Method %OnAfterCreatePage() As %Status
 		Set tOption=##class(%ZEN.Auxiliary.option).%New()
 		Set tOption.value=$Piece(tEmails.value,",",emailCount)
 		Set tOption.text=$Piece(tEmails.value,",",emailCount)
+		If ..CustomFilters.GetAt(tOption.value)'="" {
+			Set tOption.text=tOption.text_" (custom filter)"
+		}
 		Do tEmailList.options.Insert(tOption)
 		Do ..%AddComponent(tOption)
 	}
@@ -180,7 +183,12 @@ ClientMethod populateEmailList() [ Language = javascript ]
 	var emailsString=emailText.value;
 	var emailsArray=emailsString.split(",")
 	for (i=0;i<emailsArray.length;i++) {
-		emailList.appendOption(emailsArray[i],emailsArray[i]);
+		var email=emailsArray[i];
+		var custom="";
+		if (zenPage.GetCustomFilter(email)!='') {
+			custom=" (custom filter)";
+		}
+		emailList.appendOption(email,email+custom);
 	}
 }
 
@@ -218,6 +226,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Language = javascript ]
 	case 'CustomFilter':
 		if ((action='ok')||(action='apply')) {
 			zenPage.SetCustomFilter(value);
+			this.populateEmailList();
 		}
 		break;
 	}
