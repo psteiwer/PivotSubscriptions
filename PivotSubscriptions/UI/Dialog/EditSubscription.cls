@@ -15,7 +15,7 @@ Property SubscriptionId As %ZEN.Datatype.integer(ZENURL = "SUBSCRIPTIONID");
 
 Property SelectedEmail As %String;
 
-Property CustomFilter As array Of %String;
+Property CustomFilters As array Of %String;
 
 Parameter APPLYBUTTON = 0;
 
@@ -145,6 +145,16 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSubscription.Format=pFormat
 	Set tSubscription.Emails=pEmails
 	Set tSubscription.Name=pName
+
+	// Get Custom Filter info
+	Set tKey=""
+	Set tVal=..CustomFilters.GetNext(.tKey)
+	While tKey'="" {
+		// TODO: Check return status
+		Do tSubscription.CustomFilters.SetAt(tVal,tKey)
+		Set tVal=..CustomFilters.GetNext(.tKey)
+	}
+
 	Set tSC=tSubscription.%Save()
 	
 	Set tSC=tEvent.LogUpdate(tSC)
@@ -204,11 +214,11 @@ ClientMethod onPopupAction(popupName, action, value) [ Language = javascript ]
 	}
 }
 
-Method SetCustomFilter(pExpression) As %Status
+Method SetCustomFilter(pExpression) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 
-	Set tSC=..CustomFilter.SetAt(pExpression,..SelectedEmail)
+	Set tSC=..CustomFilters.SetAt(pExpression,..SelectedEmail)
 
 	Quit tSC
 }
