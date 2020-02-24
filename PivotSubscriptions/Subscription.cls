@@ -5,21 +5,21 @@ Parameter DEFAULTGLOBAL = "^PivotSubscriptions.Sub";
 
 Property CreatedBy As %String;
 
-Property Pivot As %String(MAXLEN="");
+Property Pivot As %String(MAXLEN = "");
 
 Property DayOfWeek As %String;
 
-Property Hour As %Integer(MINVAL=0, MAXVAL=23);
+Property Hour As %Integer(MAXVAL = 23, MINVAL = 0);
 
-Property Minute As %Integer(VALUELIST=",0,15,30,45");
+Property Minute As %Integer(VALUELIST = ",0,15,30,45");
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
-Property Emails As %String(MAXLEN="");
+Property Emails As %String(MAXLEN = "");
 
 Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utility).GetVersion()} ];
 
-Property Name As %String(MAXLEN=100);
+Property Name As %String(MAXLEN = 100);
 
 Storage Default
 {
