@@ -73,6 +73,15 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("Format").value=tSubscription.Format
 		Set ..%GetComponentById("Emails").value=tSubscription.Emails
 		Set ..%GetComponentById("SubscriptionName").value=tSubscription.Name
+
+		// Populate CustomFilters
+		Set tKey=""
+		Set tVal=tSubscription.CustomFilters.GetNext(.tKey)
+		While tKey'="" {
+			// TODO: Check return status
+			Do ..CustomFilters.SetAt(tVal,tKey)
+			Set tVal=tSubscription.CustomFilters.GetNext(.tKey)
+		}
 	}
 
 	Set tTable=..%GetComponentById("PivotTable")
@@ -223,6 +232,16 @@ Method SetCustomFilter(pExpression) As %Status [ ZenMethod ]
 	Quit tSC
 }
 
+Method GetCustomFilter(pEmail) As %String [ ZenMethod ]
+{
+	Set tFilter=""
+	
+	// Look for filter in local CustomFilters, this will be populated with saved Subscription Custom Filters when loaded
+	Set tFilter=..CustomFilters.GetAt(pEmail)
+	
+	Quit tFilter
+}
+
 ClientMethod customFilter() [ Language = javascript ]
 {
 	var emailList=zen('EmailList');
@@ -242,11 +261,12 @@ ClientMethod customFilter() [ Language = javascript ]
 	var cubeName=zenPage.GetPivotCube(this.pivotName)
 
 	// Get any existing custom filters
+	var expression=zenPage.GetCustomFilter(emailValue);
 
 	// Use AdvancedFilter to allow custom filter to be added
 	var parms = {
 		CUBE:cubeName,
-		EXPRESSION:''
+		EXPRESSION:expression
 	};
 	// Can I hide the Apply button?
 	zenLaunchPopupWindow('_DeepSee.UI.Dialog.AdvancedFilter.zen','CustomFilter','status=no,scrollbars,resizable=yes,width=900,height=600',parms,this);
