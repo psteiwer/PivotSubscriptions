@@ -40,7 +40,8 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45"/>
 </hgroup>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
-<textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses." cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
+<textarea id="Emails" label="Email Addresses (Comma separated list)" cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
+<spacer height="5px"/>
 <hgroup>
 	<listBox id="EmailList" listWidth="410px"/>
 	<vgroup valign="top">
