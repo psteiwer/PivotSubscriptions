@@ -48,6 +48,11 @@ ClassMethod LogEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, 
 	Set tEventLog.Format=pFormat
 	Set tEventLog.Emails=pEmails
 
+	If pType="tableError" {
+		Set tEventLog.Status=$$$OK
+		Set tEventLog.EndTime=$zdt($h,3,1)
+	}
+
 	Set tSC=tEventLog.%Save()
 	Set pEvent=tEventLog
 	
