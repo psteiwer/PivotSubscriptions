@@ -132,7 +132,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 				}
 			} Else {
 				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-				Do msg.TextData.WriteLine("No data for requested pivot.")
+				Do msg.TextData.WriteLine($G(^PivotSubscriptions.Settings("NoDataMessage"),"No data for requested pivot."))
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 			}
 		}
