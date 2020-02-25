@@ -21,7 +21,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 			<text id="PortText" label="Port Number" size="25" />
 			<label label="No Data Settings" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
 			<radioSet id="NoDataEmail" label="Send No Data Email" displayList="Yes,No" valueList="1,0" value="1"/>
-			<textarea id="NoDataMessage" label="No Data Message" value="No data for requested pivot."/>
+			<textarea id="NoDataMessage" label="No Data Message" cols="50" rows="3" value="No data for requested pivot."/>
 	</vgroup>
 </hgroup>
 <hgroup>
