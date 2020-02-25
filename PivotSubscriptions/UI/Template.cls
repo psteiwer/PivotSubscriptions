@@ -12,8 +12,10 @@ Method OnGetRibbonInfo(Output pDisplay As %Boolean, Output pViewIcons As %List, 
 
 	Set pCommands($I(pCommands))=$LB("subscriptionManager",$$$Text("Subscription Manager"),$$$Text("Manage Pivot Subscriptions"),"zenPage.navigate('subscriptionManager');")
 	Set pCommands($I(pCommands))=$LB("pivotList",$$$Text("Pivot List"),$$$Text("View All Pivot Tables"),"zenPage.navigate('pivotList');")
+	// Check for additional permissions?
 	Set pCommands($I(pCommands))=$LB("configurationPage",$$$Text("Configuration Page"),$$$Text("Configure Settings"),"zenPage.navigate('configurationPage');")
-	
+	Set pCommands($I(pCommands))=$LB("eventLogViewer",$$$Text("Event Log Viewer"),$$$Text("Event Log Viewer"),"zenPage.navigate('eventLogViewer');")
+
 	Quit $$$OK
 }
 
@@ -26,6 +28,8 @@ ClientMethod navigate(pageName) [ Language = javascript ]
 		location="./PivotSubscriptions.UI.PivotList.zen"
 	} else if (pageName=='configurationPage') {
 		location="./PivotSubscriptions.UI.ConfigurationPage.zen"
+	} else if (pageName='eventLogViewer') {
+		location="./PivotSubscriptions.UI.EventLogViewer.zen"
 	} else {
 		// Invalid page name
 	}
