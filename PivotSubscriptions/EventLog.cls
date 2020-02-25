@@ -24,9 +24,9 @@ Property Minute As %Integer(MAXVAL = 59, MINVAL = 0);
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
-Property Emails As %String;
+Property Emails As %String(MAXLEN = "");
 
-Property Name As %String;
+Property Name As %String(MAXLEN = 100);
 
 Property Status As %Status;
 
