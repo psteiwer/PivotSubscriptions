@@ -12,35 +12,18 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane xmlns="http://www.intersystems.com/zen">
 <hgroup valign="top" >
-<spacer width="20" />
-<vgroup valign="top" >
-<spacer height="20" />
-
-<label id="AdminEmailLabel" label="" />
-<text id="AdminEmailText" clientType = "string" />
-
-<spacer height="16" />
-
-<label id="HTTPLabel" label="" />
-<radioSet id="HTTPButton" 
-          displayList="HTTP, HTTPs"
-          valueList="http://,https://" />
-
-<spacer height="16" />
-
-<label id="ServerLabel" label="" />
-<text id="ServerText" clientType = "string" />
-
-<spacer height="16" />
-
-<label id="PortLabel" label="" />
-<text id="PortText" clientType = "string" />
-
-<spacer height="16" />
-
-<button id="SaveButton" caption="Save" onclick="zenPage.ButtonClick();" />
-
-</vgroup>
+	<spacer width="20" />
+	<vgroup cellStyle="padding:2px 0px 6px 2px" enclosingStyle="padding-left:10px;padding-top:20px;" labelPosition="left">
+			<text id="AdminEmailText" label="Send error email notification to" size="25" />
+			<label label="Server Link Configuration" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
+			<radioSet id="HTTPButton" label="HTTP or HTTPS?" displayList="HTTP, HTTPs" valueList="http://,https://" />
+			<text id="ServerText" label="Server" size="25" />
+			<text id="PortText" label="Port Number" size="25" />
+	</vgroup>
+</hgroup>
+<hgroup>
+	<spacer width="30" />
+	<button id="SaveButton" caption="Save" onclick="zenPage.ButtonClick();" />
 </hgroup>
 </pane>
 }
@@ -65,11 +48,6 @@ Method %OnGetProductName() As %String [ Internal ]
 
 Method %OnAfterCreatePage() As %Status
 {
-	Set ..%GetComponentById("AdminEmailLabel").value=$$$TextJS("Send error email notification to:")
-	Set ..%GetComponentById("HTTPLabel").value=$$$TextJS("HTTP or HTTPS?")
-	Set ..%GetComponentById("ServerLabel").value=$$$TextJS("Server")
-	Set ..%GetComponentById("PortLabel").value=$$$TextJS("Port Number")
-	
 	// check if each global is instantiated and set only if they aren't empty or nonexsistent
 	If $G(^PivotSubscriptions.Settings("AdminEmail"))'="" {
 		Set ..%GetComponentById("AdminEmailText").value=^PivotSubscriptions.Settings("AdminEmail")
