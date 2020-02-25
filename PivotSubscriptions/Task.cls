@@ -140,7 +140,9 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 		Do msg.To.SetAt(tEmail,1)
 		
 		// Send email
-		Set tSC=server.Send(msg)
+		If $G(^PivotSubscriptions.Settings("SendNoData"),1) {
+			Set tSC=server.Send(msg)
+		}
 		// TODO: Log individual send status?
 			
 		If tHasResults {
