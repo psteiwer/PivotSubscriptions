@@ -7,12 +7,14 @@ ClassMethod GetVersion() As %String
 }
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort)
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage)
 {
 	Set ^PivotSubscriptions.Settings("AdminEmail")=pAdminEmail
 	Set ^PivotSubscriptions.Settings("Http")=pHttp
 	Set ^PivotSubscriptions.Settings("Server")=pServer
 	Set ^PivotSubscriptions.Settings("Port")=pPort
+	Set ^PivotSubscriptions.Settings("SendNoData")=pNoDataEmail
+	Set ^PivotSubscriptions.Settings("NoDataMessage")=pNoDataMessage
 	
 	Quit $$$OK
 }
