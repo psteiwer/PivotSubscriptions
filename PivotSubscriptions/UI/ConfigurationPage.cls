@@ -19,6 +19,9 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 			<radioSet id="HTTPButton" label="HTTP or HTTPS?" displayList="HTTP, HTTPs" valueList="http://,https://" />
 			<text id="ServerText" label="Server" size="25" />
 			<text id="PortText" label="Port Number" size="25" />
+			<label label="No Data Settings" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
+			<radioSet id="NoDataEmail" label="Send No Data Email" displayList="Yes,No" valueList="1,0" value="1"/>
+			<textarea id="NoDataMessage" label="No Data Message"/>
 	</vgroup>
 </hgroup>
 <hgroup>
@@ -61,6 +64,12 @@ Method %OnAfterCreatePage() As %Status
 	If $G(^PivotSubscriptions.Settings("Port"))'="" {
 		Set ..%GetComponentById("PortText").value=^PivotSubscriptions.Settings("Port")
 	}
+	If $G(^PivotSubscriptions.Settings("SendNoData"))'="" {
+		Set ..%GetComponentById("NoDataEmail").value=^PivotSubscriptions.Settings("SendNoData")
+	}
+	If $G(^PivotSubscriptions.Settings("NoDataMessage"))'="" {
+		Set ..%GetComponentById("NoDataMessage").value=^PivotSubscriptions.Settings("NoDataMessage")
+	}
 	
 	Quit $$$OK
 }
@@ -72,19 +81,21 @@ ClientMethod ButtonClick() [ Language = javascript ]
 		var http=zen('HTTPButton').getValue();
 		var server=zen('ServerText').getValue();
 		var port=zen('PortText').getValue();
+		var nodataemail=zen('NoDataEmail').getValue();
+		var nodatamessage=zen('NoDataMessage').getValue();
 		
-		var status=zenPage.SaveConfiguration(adminemail,http,server,port);
+		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
 }
 
-Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort) As %Status [ ZenMethod ]
+Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort)
+	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage)
 	
 	Quit tSC
 }
