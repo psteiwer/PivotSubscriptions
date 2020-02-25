@@ -21,7 +21,7 @@ Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Ut
 
 Property Name As %String(MAXLEN = 100);
 
-Property CustomFilters As array Of %String;
+Property CustomFilters As array Of %String(MAXLEN = "");
 
 Storage Default
 {
