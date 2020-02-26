@@ -70,9 +70,21 @@ Method LogUpdate(pStatus) As %Status
 	Quit tSC
 }
 
+ClassMethod DayOfWeekDisplay(pDayOfWeek) As %String [ SqlProc ]
+{
+	Set pDayOfWeek=$Replace(pDayOfWeek,0,"Sunday")
+	Set pDayOfWeek=$Replace(pDayOfWeek,1,"Monday")
+	Set pDayOfWeek=$Replace(pDayOfWeek,2,"Tuesday")
+	Set pDayOfWeek=$Replace(pDayOfWeek,3,"Wednesday")
+	Set pDayOfWeek=$Replace(pDayOfWeek,4,"Thursday")
+	Set pDayOfWeek=$Replace(pDayOfWeek,5,"Friday")
+	Set pDayOfWeek=$Replace(pDayOfWeek,6,"Saturday")
+	Quit pDayOfWeek
+}
+
 Query GetEvents() As %SQLQuery
 {
-    SELECT StartTime,EndTime,EventType,Name,Pivot,UserName,DayOfWeek,Format,"Hour","Minute",Emails,Status
+    SELECT StartTime,EndTime,EventType,Name,Pivot,UserName,PivotSubscriptions.EventLog_DayOfWeekDisplay(DayOfWeek) As DayOfWeek,Format,"Hour","Minute",Emails,Status
     FROM PivotSubscriptions.EventLog 
     ORDER BY ID DESC
 }
