@@ -70,6 +70,13 @@ Method LogUpdate(pStatus) As %Status
 	Quit tSC
 }
 
+Query GetEvents() As %SQLQuery
+{
+    SELECT StartTime,EndTime,EventType,Name,Pivot,UserName,DayOfWeek,Format,"Hour","Minute",Emails,Status
+    FROM PivotSubscriptions.EventLog 
+    ORDER BY ID DESC
+}
+
 Storage Default
 {
 <Data name="EventLogDefaultData">

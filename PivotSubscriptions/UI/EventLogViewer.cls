@@ -16,7 +16,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <tablePane id="tablePane"
     cellSpacing="2"
 	fixedHeaders="false"
-	queryClass="PivotSubscriptions.UI.EventLogViewer"
+	queryClass="PivotSubscriptions.EventLog"
 	queryName="GetEvents"
 	useSnapshot="true"
 	showQuery="false"
@@ -41,13 +41,6 @@ Method %OnGetTitle() As %String [ Internal ]
 Method %OnGetPageName() As %String [ Internal ]
 {
 	Quit $$$Text("Event Log Viewer","PivotSubscriptions")
-}
-
-Query GetEvents() As %SQLQuery
-{
-    SELECT StartTime,EndTime,EventType,Name,Pivot,UserName,DayOfWeek,Format,"Hour","Minute",Emails,Status
-    FROM PivotSubscriptions.EventLog 
-    ORDER BY ID DESC
 }
 
 }
