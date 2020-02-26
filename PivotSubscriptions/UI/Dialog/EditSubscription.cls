@@ -124,6 +124,10 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var pivot=this.pivotName;
 		
 		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name);
+
+		if (status!=1) {
+			alert("Error during save, see Event Log for more details.");
+		}
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -170,7 +174,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 
 	Set tSC=tSubscription.%Save()
 	
-	Set tSC=tEvent.LogUpdate(tSC)
+	Do tEvent.LogUpdate(tSC)
 	
 	Quit tSC
 }
