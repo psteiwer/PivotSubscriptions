@@ -13,6 +13,10 @@ Property pivotName As %ZEN.Datatype.string(ZENURL = "PIVOTNAME");
 
 Property SubscriptionId As %ZEN.Datatype.integer(ZENURL = "SUBSCRIPTIONID");
 
+Property SelectedEmail As %String;
+
+Property CustomFilters As array Of %String;
+
 Parameter APPLYBUTTON = 0;
 
 /// This Style block contains page-specific CSS style definitions.
@@ -36,11 +40,13 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45"/>
 </hgroup>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
-<textarea id="Emails" label="Email Addresses" hint="Comma separated list of email addresses." cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
+<textarea id="Emails" label="Email Addresses (Comma separated list)" cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
+<spacer height="5px"/>
 <hgroup>
 	<listBox id="EmailList" listWidth="410px"/>
 	<vgroup valign="top">
 		<image src="deepsee/close_a_16.png" width="16" height="16" title="Remove the selected email address" onclick="zenPage.removeEmail();"/>
+		<image src="deepsee/ds2_magnify_18.png" width="16" height="16" title="Add custom filter" onclick="zenPage.customFilter();"/>
 	</vgroup>
 </hgroup>
 </pane>
@@ -68,6 +74,15 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("Format").value=tSubscription.Format
 		Set ..%GetComponentById("Emails").value=tSubscription.Emails
 		Set ..%GetComponentById("SubscriptionName").value=tSubscription.Name
+
+		// Populate CustomFilters
+		Set tKey=""
+		Set tVal=tSubscription.CustomFilters.GetNext(.tKey)
+		While tKey'="" {
+			// TODO: Check return status
+			Do ..CustomFilters.SetAt(tVal,tKey)
+			Set tVal=tSubscription.CustomFilters.GetNext(.tKey)
+		}
 	}
 
 	Set tTable=..%GetComponentById("PivotTable")
@@ -83,6 +98,9 @@ Method %OnAfterCreatePage() As %Status
 		Set tOption=##class(%ZEN.Auxiliary.option).%New()
 		Set tOption.value=$Piece(tEmails.value,",",emailCount)
 		Set tOption.text=$Piece(tEmails.value,",",emailCount)
+		If ..CustomFilters.GetAt(tOption.value)'="" {
+			Set tOption.text=tOption.text_" (custom filter)"
+		}
 		Do tEmailList.options.Insert(tOption)
 		Do ..%AddComponent(tOption)
 	}
@@ -106,6 +124,10 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var pivot=this.pivotName;
 		
 		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name);
+
+		if (status!=1) {
+			alert("Error during save, see Event Log for more details.");
+		}
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
@@ -121,15 +143,18 @@ ClientMethod getDialogValue() [ Language = javascript ]
 Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
-	Set tLog=$$$OK
-	
+  
+	Set tEventType=""
 	If pSubscriptionId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
+		Set tEventType="update"
 	} Else {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%New()
 		Set tSubscription.CreatedBy=$username
 		Set tSubscription.Pivot=pPivot
+		Set tEventType="create"
 	}
+	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent(tEventType,$username,tSubscription.Pivot,pDayOfWeek,pHour,pMinute,pFormat,pEmails,pName,.tEvent)
 		
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
@@ -137,20 +162,19 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSubscription.Format=pFormat
 	Set tSubscription.Emails=pEmails
 	Set tSubscription.Name=pName
+
+	// Get Custom Filter info
+	Set tKey=""
+	Set tVal=..CustomFilters.GetNext(.tKey)
+	While tKey'="" {
+		// TODO: Check return status
+		Do tSubscription.CustomFilters.SetAt(tVal,tKey)
+		Set tVal=..CustomFilters.GetNext(.tKey)
+	}
+
 	Set tSC=tSubscription.%Save()
 	
-	If $$$ISERR(tSC) Quit tSC
-	
-	// log new values into event log instead of old values, as well as logging after a successful save
-	If tSC {
-		If pSubscriptionId '= 0 {
-			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("update", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
-			If $$$ISERR(tLog) Quit tLog
-		} Else {
-			Set tLog = ##class(PivotSubscriptions.EventLog).LogEvent("creation", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
-			If $$$ISERR(tLog) Quit tLog
-		}
-	}
+	Do tEvent.LogUpdate(tSC)
 	
 	Quit tSC
 }
@@ -164,7 +188,12 @@ ClientMethod populateEmailList() [ Language = javascript ]
 	var emailsString=emailText.value;
 	var emailsArray=emailsString.split(",")
 	for (i=0;i<emailsArray.length;i++) {
-		emailList.appendOption(emailsArray[i],emailsArray[i]);
+		var email=emailsArray[i];
+		var custom="";
+		if (zenPage.GetCustomFilter(email)!='') {
+			custom=" (custom filter)";
+		}
+		emailList.appendOption(email,email+custom);
 	}
 }
 
@@ -194,6 +223,80 @@ ClientMethod removeEmail() [ Language = javascript ]
 	emailText.setValue(emailTextValue);
 	emailList.removeOption(pos);
 	emailList.setProperty("selectedIndex",-1);
+}
+
+ClientMethod onPopupAction(popupName, action, value) [ Language = javascript ]
+{
+	switch(popupName) {
+	case 'CustomFilter':
+		if ((action='ok')||(action='apply')) {
+			zenPage.SetCustomFilter(value);
+			this.populateEmailList();
+		}
+		break;
+	}
+}
+
+Method SetCustomFilter(pExpression) As %Status [ ZenMethod ]
+{
+	Set tSC=$$$OK
+
+	If pExpression'="" {
+		Set tSC=..CustomFilters.SetAt(pExpression,..SelectedEmail)
+	}
+
+	Quit tSC
+}
+
+Method GetCustomFilter(pEmail) As %String [ ZenMethod ]
+{
+	Set tFilter=""
+	
+	// Look for filter in local CustomFilters, this will be populated with saved Subscription Custom Filters when loaded
+	Set tFilter=..CustomFilters.GetAt(pEmail)
+	
+	Quit tFilter
+}
+
+ClientMethod customFilter() [ Language = javascript ]
+{
+	var emailList=zen('EmailList');
+	var count=emailList.getOptionCount();
+	if (count==0) return;
+	var pos=emailList.getProperty("selectedIndex");
+	if (pos<0) {
+		alert($$$Text("Please select the email you want to add a custom filter for and try again."));
+		return;
+	}
+
+	// Get Email and store the value
+	var emailValue=emailList.getOptionValue(pos);
+	this.SelectedEmail=emailValue;
+
+	// Get Cube Name for pivot
+	var cubeName=zenPage.GetPivotCube(this.pivotName)
+
+	// Get any existing custom filters
+	var expression=zenPage.GetCustomFilter(emailValue);
+
+	// Use AdvancedFilter to allow custom filter to be added
+	var parms = {
+		CUBE:cubeName,
+		EXPRESSION:expression
+	};
+	// Can I hide the Apply button?
+	zenLaunchPopupWindow('_DeepSee.UI.Dialog.AdvancedFilter.zen','CustomFilter','status=no,scrollbars,resizable=yes,width=900,height=600',parms,this);
+}
+
+Method GetPivotCube(pPivot) As %String [ ZenMethod ]
+{
+	Set tCube=""
+
+	// Add error handling?
+	Do ##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0,,.tRS)
+	Set tCube=tRS.%GetCubeName()
+
+	Quit tCube
 }
 
 }

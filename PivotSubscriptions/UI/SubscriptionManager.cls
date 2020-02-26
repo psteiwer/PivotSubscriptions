@@ -85,7 +85,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 }
 
 /// Creates edit popup.
-ClientMethod editSubscription(pId,pPivot) [ Internal, Language = javascript ]
+ClientMethod editSubscription(pId, pPivot) [ Internal, Language = javascript ]
 {
 	var parms = {
 			MODE:"models",
@@ -109,7 +109,7 @@ ClientMethod deleteSubscription(pId) [ Language = javascript ]
 }
 
 /// Send the selected subscription now.
-ClientMethod sendSubscriptionNow(pId,pPivot) [ Language = javascript ]
+ClientMethod sendSubscriptionNow(pId, pPivot) [ Language = javascript ]
 {
 	if (pId!="") {
 		// todo; parameterize default email
@@ -133,7 +133,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	Set tMsg="Subscription Deleted."
 	
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("deletion", $username, tSubscription.Pivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tSubscription.Emails, tSubscription.Name)
+	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("delete",$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
 	
 	If $$$ISERR(tSC) Quit tSC
 	
@@ -141,6 +141,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	If $$$ISERR(tSC) {
 		Set tMsg=$System.Status.GetErrorText(tSC)
 	}
+	Set tSC=tEvent.LogUpdate(tSC)
 	
 	Quit tMsg
 }
@@ -152,7 +153,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
+		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pId, pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
 	
 		If $$$ISERR(tSC) {
 			Set tMsg=$System.Status.GetErrorText(tSC)
@@ -164,7 +165,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 
 Method GetManagerEmail() As %String [ ZenMethod ]
 {
-	Set tSC=##class(PivotSubscriptions.Utility).CheckConfigurationGlobal("AdminEmail")
+	Set tSC=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
 	
 	If tSC {
 		Quit ^PivotSubscriptions.Settings("AdminEmail")
