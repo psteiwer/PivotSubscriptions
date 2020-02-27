@@ -141,7 +141,7 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus)
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
-	
+
 	Set tName=pSubscription.Name
 	If tName="" {
 		Set tName=$E(pSubscription.Pivot,1,*-6)
