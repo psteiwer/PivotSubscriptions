@@ -70,6 +70,23 @@ Method UpdateStatus(pStatus) As %Status
 	Quit tSC
 }
 
+Method UpdateEvent(pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Status
+{
+	Set tSC=$$$OK
+
+	Set ..DayOfWeek=pDayOfWeek
+	Set ..Hour=pHour
+	Set ..Minute=pMinute
+	Set ..Format=pFormat
+	Set ..Emails=pEmails
+	Set ..Name=pEvent
+	Set ..EndTime=$zdt($h,3,1)
+
+	Set tSC=..%Save()
+
+	Quit tSC
+}
+
 ClassMethod DayOfWeekDisplay(pDayOfWeek) As %String [ SqlProc ]
 {
 	Set pDayOfWeek=$Replace(pDayOfWeek,0,"Sunday")
