@@ -158,10 +158,9 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod TableErrorMessage(pPivot As %String, pEmail As %String, pName As %String, pReason As %String) As %Status
+ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("tableError",$username,pPivot,"","","","",pEmail,pName,.pEvent)
-	
+	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,pEmail,pName,.pEvent)
 	If $$$ISERR(tLog) Quit tLog
 	
 	// Generate email
@@ -177,7 +176,7 @@ ClassMethod TableErrorMessage(pPivot As %String, pEmail As %String, pName As %St
 	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>.")
+	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pSubscription.Pivot,1,*-6)_"</b>.")
 	If pReason="NoResults" {
 		Do msg.TextData.WriteLine("No data populated for table/filters.<br>")
 	} ElseIf pReason="TooLarge" {
@@ -187,8 +186,8 @@ ClassMethod TableErrorMessage(pPivot As %String, pEmail As %String, pName As %St
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
 	// Set recipient of email
-	Do msg.To.SetAt(pEmail,1)
-			
+	Do msg.To.SetAt(^PivotSubscriptions.Settings("AdminEmail"),1)
+	
 	// Send email
 	Set tSC=server.Send(msg)
 	Set tSC=pEvent.LogUpdate($$$ERROR($$$GeneralError,pReason))
