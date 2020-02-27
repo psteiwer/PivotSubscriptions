@@ -109,14 +109,18 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 	Do pMsg.TextData.WriteLine("<tr><td><p class='center'>")
 }
 
-/// Write footer for any email, including link generation
-ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
+ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage)
 {
 	Do ##class(PivotSubscriptions.Utils).GenerateLink(.link)
-
+	
 	Do pMsg.TextData.WriteLine("</p></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
+}
+
+/// Write footer for any email, including link generation
+ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
+{
 	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'><i>Pivot Subscriptions</i> by DeepSee</p></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><p class='tab'>2019&nbsp;<b>InterSystems Corporation</p></b></td></tr><tr><td><p class='tab'>One Memorial Drive, Cambridge, MA 02142</p></td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
 }
@@ -155,6 +159,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
 	}
 
+	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
