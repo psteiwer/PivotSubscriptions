@@ -178,7 +178,7 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 	
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
 	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>.")
-	If pReason="NoData" {
+	If pReason="NoResults" {
 		Do msg.TextData.WriteLine("No data populated for table/filters.<br>")
 	} ElseIf pReason="TooLarge" {
 		Do msg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
