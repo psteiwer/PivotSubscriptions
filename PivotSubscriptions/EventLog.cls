@@ -79,8 +79,7 @@ Method UpdateEvent(pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Stat
 	Set ..Minute=pMinute
 	Set ..Format=pFormat
 	Set ..Emails=pEmails
-	Set ..Name=pEvent
-	Set ..EndTime=$zdt($h,3,1)
+	Set ..Name=pName
 
 	Set tSC=..%Save()
 
