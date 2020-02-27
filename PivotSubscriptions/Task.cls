@@ -67,7 +67,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	For count=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",count)
 
-		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tEmail, pName, .pEvent)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription", $username, pPivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tEmail, pName, .pEvent)
 		If $$$ISERR(tSC) Quit tSC
 
 		Set tHasResults=0
@@ -136,7 +136,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 		// Send email
 		If tHasResults||##class(PivotSubscriptions.Utils).GetSettings("SendNoData",1) {
 			Set tSC=server.Send(msg)
-			Set tSC=pEvent.LogUpdate(tSC)
+			Set tSC=pEvent.UpdateEvent(tSC)
 			If $$$ISERR(tSC) Quit tSC
 		}
 			
