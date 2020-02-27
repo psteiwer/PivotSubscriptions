@@ -191,7 +191,7 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 			
 	// Send email
 	Set tSC=server.Send(msg)
-	Set tSC=pEvent.LogUpdate(tSC)
+	Set tSC=pEvent.LogUpdate($$$ERROR($$$GeneralError,pReason))
 	
 	Quit tSC
 }
