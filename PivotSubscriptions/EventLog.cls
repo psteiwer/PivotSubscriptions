@@ -28,7 +28,7 @@ Property Name As %String(MAXLEN = 100);
 Property Status As %Status;
 
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod LogEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
+ClassMethod CreateEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
 {
 	Set tSC=$$$OK
 	
@@ -51,12 +51,28 @@ ClassMethod LogEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, 
 	Quit tSC
 }
 
-Method LogUpdate(pStatus) As %Status
+Method UpdateStatus(pStatus) As %Status
 {
 	Set tSC=$$$OK
 
 	Set ..EndTime=$zdt($h,3,1)
 	Set ..Status=pStatus
+	Set tSC=..%Save()
+
+	Quit tSC
+}
+
+Method UpdateEvent(pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Status
+{
+	Set tSC=$$$OK
+
+	Set ..DayOfWeek=pDayOfWeek
+	Set ..Hour=pHour
+	Set ..Minute=pMinute
+	Set ..Format=pFormat
+	Set ..Emails=pEmails
+	Set ..Name=pName
+
 	Set tSC=..%Save()
 
 	Quit tSC

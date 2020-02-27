@@ -182,7 +182,8 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 
 ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,pEmail,pName,.pEvent)
+	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,pEmail,pName,.pEvent)
+
 	If $$$ISERR(tLog) Quit tLog
 	
 	// Generate email
@@ -212,7 +213,7 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	
 	// Send email
 	Set tSC=server.Send(msg)
-	Set tSC=pEvent.LogUpdate($$$ERROR($$$GeneralError,pReason))
+	Set tSC=pEvent.UpdateStatus($$$ERROR($$$GeneralError,pReason))
 	
 	Quit tSC
 }
