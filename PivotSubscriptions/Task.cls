@@ -12,7 +12,7 @@ Method OnTask() As %Status
 	Set tHour=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1)
 	Set tMinute=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2)
 	
-	If $G(^PivotSubscriptions.Settings("TestEnv")) {
+	If ##class(PivotSubscriptions.Utils).GetSettings("TestEnv",0) {
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
 		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
@@ -93,7 +93,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			Set validAdminEmail=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
 			
 			If validAdminEmail {
-				Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail")
+				Set msg.ReplyTo=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 			}
 			
 			// Remove ".pivot" extension for subject
@@ -123,7 +123,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 				}
 			} Else {
 				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-				Do msg.TextData.WriteLine($G(^PivotSubscriptions.Settings("NoDataMessage"),"No data for requested pivot."))
+				Do msg.TextData.WriteLine(##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage","No data for requested pivot."))
 				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
@@ -134,7 +134,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 		Do msg.To.SetAt(tEmail,1)
 		
 		// Send email
-		If tHasResults||$G(^PivotSubscriptions.Settings("SendNoData"),1) {
+		If tHasResults||##class(PivotSubscriptions.Utils).GetSettings("SendNoData",1) {
 			Set tSC=server.Send(msg)
 			Set tSC=pEvent.LogUpdate(tSC)
 			If $$$ISERR(tSC) Quit tSC

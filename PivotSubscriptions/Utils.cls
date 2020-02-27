@@ -24,12 +24,17 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, 
 ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 {
 	If ((pConfigurationOptionName'="") && $DATA(^PivotSubscriptions.Settings(pConfigurationOptionName))) {
-		If (^PivotSubscriptions.Settings(pConfigurationOptionName)'="") {
+		If ##class(PivotSubscriptions.Utils).GetSettings(pConfigurationOptionName)'="" {
 			Quit 1
 		}
 	}
 
 	Quit 0
+}
+
+ClassMethod GetSettings(pSetting As %String, pDefaultValue As %String = "") As %String
+{
+	Quit $G(^PivotSubscriptions.Settings(pSetting),pDefaultValue)
 }
 
 ClassMethod GenerateLink(ByRef link As %String) As %Status
@@ -40,19 +45,19 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	If $$$ISERR(tSC) Quit tSC
 	
 	If ..CheckConfigurationGlobal("Http") {
-		Set tWebServerPortUrl=^PivotSubscriptions.Settings("Http")
+		Set tWebServerPortUrl=##class(PivotSubscriptions.Utils).GetSettings("Http")
 	} Else {
 		Set tWebServerPortUrl="http://"
 	}
 	
 	If ..CheckConfigurationGlobal("Server") {
-		Set tWebServerPortUrl=tWebServerPortUrl_^PivotSubscriptions.Settings("Server")
+		Set tWebServerPortUrl=tWebServerPortUrl_##class(PivotSubscriptions.Utils).GetSettings("Server")
 	} Else {
 		Set tWebServerPortUrl=tWebServerPortUrl_h
 	}
 	
 	If ..CheckConfigurationGlobal("Port") {
-		Set tWebServerPortUrl=tWebServerPortUrl_":"_^PivotSubscriptions.Settings("Port")
+		Set tWebServerPortUrl=tWebServerPortUrl_":"_##class(PivotSubscriptions.Utils).GetSettings("Port")
 	} Else {
 		If '..CheckConfigurationGlobal("Server") {
 			Set tWebServerPortUrl=tWebServerPortUrl_":"_p
@@ -185,7 +190,7 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 	Set msg=##class(%Net.MailMessage).%New()
 	Set msg.From="PivotSubscriptions"
-	Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail") // replace with admin email
+	Set msg.ReplyTo=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail") // replace with admin email
 
 	// Remove ".pivot" extension for subject
 	Set msg.Subject="Table Error detected for "_pName

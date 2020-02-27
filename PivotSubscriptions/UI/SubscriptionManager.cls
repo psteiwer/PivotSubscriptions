@@ -165,13 +165,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 
 Method GetManagerEmail() As %String [ ZenMethod ]
 {
-	Set tSC=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
-	
-	If tSC {
-		Quit ^PivotSubscriptions.Settings("AdminEmail")
-	}
-	
-	Quit ""
+	Quit ##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 }
 
 /// Query to get subscriptions for Subscription Manager display table.
