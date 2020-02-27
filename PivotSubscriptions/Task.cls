@@ -136,7 +136,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 		// Send email
 		If tHasResults||##class(PivotSubscriptions.Utils).GetSettings("SendNoData",1) {
 			Set tSC=server.Send(msg)
-			Set tSC=pEvent.UpdateEvent(tSC)
+			Set tSC=pEvent.UpdateStatus(tSC)
 			If $$$ISERR(tSC) Quit tSC
 		}
 			
