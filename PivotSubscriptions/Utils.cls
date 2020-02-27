@@ -123,8 +123,13 @@ ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage)
 /// Write footer for any email, including link generation
 ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 {
-	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'><i>Pivot Subscriptions</i> by DeepSee</p></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><p class='tab'>2019&nbsp;<b>InterSystems Corporation</p></b></td></tr><tr><td><p class='tab'>One Memorial Drive, Cambridge, MA 02142</p></td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
+	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'>")
+	If ^PivotSubscriptions.Settings("CustomFooter") {
+		Do pMsg.TextData.WriteLine(^PivotSubscriptions.Settings("CustomFooterMessage"))
+	} Else {
+		Do pMsg.TextData.WriteLine("PivotSubcriptions for InterSystems IRIS Business Intelligence")
+	}
+	Do pMsg.TextData.WriteLine("</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
 }
 
 /// Write improved email format for subscription, including embeded pivot table
