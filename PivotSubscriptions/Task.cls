@@ -41,9 +41,6 @@ Method OnTask() As %Status
 ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat As %String, pDayOfWeek, pHour, pMinute, pName) As %Status
 {
 	Set tSC=$$$OK
-
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
-	If $$$ISERR(tSC) Quit tSC
 	
 	If pName="" {
 		Set pName=$E(pPivot,1,*-6)
@@ -54,9 +51,6 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 	} Catch ex {
 		Set tSC=ex.AsStatus()
 	}
-	// Update send event with status and end time
-	Set tSC=pEvent.LogUpdate(tSC)
-	If $$$ISERR(tSC) Quit tSC
 	
 	If '(##class(PivotSubscriptions.Utils).CheckTable(pName)) {
 		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
@@ -72,14 +66,17 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	Set tFilename=""
 	
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
+	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 	
 	// Iterate through all subscribers and send emails to each individually
 	For count=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",count)
 
+		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tEmail, pName, .pEvent)
+		If $$$ISERR(tSC) Quit tSC
+
 		Set tHasResults=0
 
-		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 		Set tCustomFilter=tSubscription.CustomFilters.GetAt(tEmail)
 		Set tSC=##class(PivotSubscriptions.Utils).ExecuteForSubscription(mdx,tCustomFilter,.tHasResults)
 		
@@ -142,8 +139,9 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 		// Send email
 		If tHasResults||$G(^PivotSubscriptions.Settings("SendNoData"),1) {
 			Set tSC=server.Send(msg)
+			Set tSC=pEvent.LogUpdate(tSC)
+			If $$$ISERR(tSC) Quit tSC
 		}
-		// TODO: Log individual send status?
 			
 		If tHasResults {
 			// Delete file
