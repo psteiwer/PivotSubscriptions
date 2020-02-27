@@ -158,7 +158,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
+ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String, pReason As %String) As %Status
 {
 	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("sendError",$username,pPivot,"","","","",pEmail,pName,.pEvent)
 	
@@ -177,7 +177,13 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
+	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>.")
+	If pReason="NoData" {
+		Do msg.TextData.WriteLine("No data populated for table/filters.<br>")
+	} ElseIf pReason="TooLarge" {
+		Do msg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
+	}
+	Do msg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
 	// Set recipient of email
