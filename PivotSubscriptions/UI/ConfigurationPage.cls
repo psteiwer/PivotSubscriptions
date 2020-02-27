@@ -52,23 +52,23 @@ Method %OnGetProductName() As %String [ Internal ]
 Method %OnAfterCreatePage() As %Status
 {
 	// check if each global is instantiated and set only if they aren't empty or nonexsistent
-	If $G(^PivotSubscriptions.Settings("AdminEmail"))'="" {
-		Set ..%GetComponentById("AdminEmailText").value=^PivotSubscriptions.Settings("AdminEmail")
+	If ##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")'="" {
+		Set ..%GetComponentById("AdminEmailText").value=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 	}
-	If $G(^PivotSubscriptions.Settings("Http"))'="" {
-		Set ..%GetComponentById("HTTPButton").value=^PivotSubscriptions.Settings("Http")
+	If ##class(PivotSubscriptions.Utils).GetSettings("Http")'="" {
+		Set ..%GetComponentById("HTTPButton").value=##class(PivotSubscriptions.Utils).GetSettings("Http")
 	}
-	If $G(^PivotSubscriptions.Settings("Server"))'="" {
-		Set ..%GetComponentById("ServerText").value=^PivotSubscriptions.Settings("Server")
+	If ##class(PivotSubscriptions.Utils).GetSettings("Server")'="" {
+		Set ..%GetComponentById("ServerText").value=##class(PivotSubscriptions.Utils).GetSettings("Server")
 	}
-	If $G(^PivotSubscriptions.Settings("Port"))'="" {
-		Set ..%GetComponentById("PortText").value=^PivotSubscriptions.Settings("Port")
+	If ##class(PivotSubscriptions.Utils).GetSettings("Port")'="" {
+		Set ..%GetComponentById("PortText").value=##class(PivotSubscriptions.Utils).GetSettings("Port")
 	}
-	If $G(^PivotSubscriptions.Settings("SendNoData"))'="" {
-		Set ..%GetComponentById("NoDataEmail").value=^PivotSubscriptions.Settings("SendNoData")
+	If ##class(PivotSubscriptions.Utils).GetSettings("SendNoData")'="" {
+		Set ..%GetComponentById("NoDataEmail").value=##class(PivotSubscriptions.Utils).GetSettings("SendNoData")
 	}
-	If $G(^PivotSubscriptions.Settings("NoDataMessage"))'="" {
-		Set ..%GetComponentById("NoDataMessage").value=^PivotSubscriptions.Settings("NoDataMessage")
+	If ##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage")'="" {
+		Set ..%GetComponentById("NoDataMessage").value=##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage")
 	}
 	
 	Quit $$$OK
