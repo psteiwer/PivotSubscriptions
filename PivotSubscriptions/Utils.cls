@@ -168,17 +168,16 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 		}
 	} Else {
 		// custom error message
-		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
+		Do pMsg.TextData.WriteLine("Pivot table is too big to be embedded. Please see attachment.")
 	}
 
 	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
+ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("sendError",$username,pPivot,"","","","",pEmail,pName,.pEvent)
-	
+	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,pEmail,pName,.pEvent)
 	If $$$ISERR(tLog) Quit tLog
 	
 	// Generate email
@@ -194,15 +193,21 @@ ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %Str
 	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
+	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pSubscription.Pivot,1,*-6)_"</b>.")
+	If pReason="NoResults" {
+		Do msg.TextData.WriteLine("No data populated for table/filters.<br>")
+	} ElseIf pReason="TooLarge" {
+		Do msg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
+	}
+	Do msg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
 	// Set recipient of email
-	Do msg.To.SetAt(pEmail,1)
-			
+	Do msg.To.SetAt(^PivotSubscriptions.Settings("AdminEmail"),1)
+	
 	// Send email
 	Set tSC=server.Send(msg)
-	Set tSC=pEvent.LogUpdate(tSC)
+	Set tSC=pEvent.LogUpdate($$$ERROR($$$GeneralError,pReason))
 	
 	Quit tSC
 }
