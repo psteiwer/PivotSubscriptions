@@ -142,7 +142,11 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
 	
-	Set tFilename=$replace($zstrip(pSubscription.Name,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+	Set tName=pSubscription.Name
+	If tName="" {
+		Set tName=$E(pSubscription.Pivot,1,*-6)
+	}
+	Set tFilename=$replace($zstrip(tName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
