@@ -133,11 +133,11 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 }
 
 /// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
+ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus)
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
 	
-	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+	Set tFilename=$replace($zstrip(pSubscription.Name,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
@@ -146,6 +146,11 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
+		// Include Subscription's custom email text
+		If pSubscription.CustomEmailText'="" {
+			Do pMsg.TextData.WriteLine(pSubscription.CustomEmailText)
+		}
+
 		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 		While 'tStream.AtEnd {
 			Set line=tStream.ReadLine()

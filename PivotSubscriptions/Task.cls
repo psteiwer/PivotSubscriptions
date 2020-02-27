@@ -109,7 +109,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			If tHasResults {
 				
 				// Add attachment
-				Do ##class(PivotSubscriptions.Utils).WriteEmail(pName, msg, tableStatus)
+				Do ##class(PivotSubscriptions.Utils).WriteEmail(tSubscription, msg, tableStatus)
 
 				// if table is too large, then just attach Excel instead
 				If ((pFormat = "PDF") && (tableStatus)) {
