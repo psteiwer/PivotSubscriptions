@@ -22,6 +22,9 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 			<label label="No Data Settings" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
 			<radioSet id="NoDataEmail" label="Send No Data Email" displayList="Yes,No" valueList="1,0" value="1"/>
 			<textarea id="NoDataMessage" label="No Data Message" cols="50" rows="3" value="No data for requested pivot."/>
+			<label label="Custom Emails" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
+			<radioSet id="CustomFooter" label="Custom Footer" displayList="Yes,No" valueList="1,0" value="0"/>
+			<textarea id="CustomFooterMessage" label="Custom Footer Message" cols="50" rows="3" value="PivotSubcriptions for InterSystems IRIS Business Intelligence" />
 	</vgroup>
 </hgroup>
 <hgroup>
@@ -70,6 +73,12 @@ Method %OnAfterCreatePage() As %Status
 	If ##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage")'="" {
 		Set ..%GetComponentById("NoDataMessage").value=##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage")
 	}
+	If $G(^PivotSubscriptions.Settings("CustomFooter"))'="" {
+		Set ..%GetComponentById("CustomFooter").value=^PivotSubscriptions.Settings("CustomFooter")
+	}
+	If $G(^PivotSubscriptions.Settings("CustomFooterMessage"))'="" {
+		Set ..%GetComponentById("CustomFooterMessage").value=^PivotSubscriptions.Settings("CustomFooterMessage")
+	}
 	
 	Quit $$$OK
 }
@@ -83,19 +92,21 @@ ClientMethod ButtonClick() [ Language = javascript ]
 		var port=zen('PortText').getValue();
 		var nodataemail=zen('NoDataEmail').getValue();
 		var nodatamessage=zen('NoDataMessage').getValue();
+		var customfooter=zen('CustomFooter').getValue();
+		var customfootermessage=zen('CustomFooterMessage').getValue();
 		
-		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage);
+		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
 }
 
-Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage) As %Status [ ZenMethod ]
+Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage)
+	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage)
 	
 	Quit tSC
 }
