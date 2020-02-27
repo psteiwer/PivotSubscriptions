@@ -152,7 +152,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		}
 	} Else {
 		// custom error message
-		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
+		Do pMsg.TextData.WriteLine("Pivot table is too big to be embedded. Please see attachment.")
 	}
 
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
