@@ -42,7 +42,7 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 {
 	Set tSC=$$$OK
 
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
+	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If pName="" {
@@ -59,7 +59,7 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 	If $$$ISERR(tSC) Quit tSC
 	
 	If '(##class(PivotSubscriptions.Utils).CheckTable(pName)) {
-		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
 		If $$$ISERR(tSC) Quit tSC
 	}
 	

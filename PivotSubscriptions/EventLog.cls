@@ -31,7 +31,7 @@ Property Name As %String(MAXLEN = 100);
 Property Status As %Status;
 
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod LogEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
+ClassMethod CreateEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
 {
 	Set tSC=$$$OK
 	

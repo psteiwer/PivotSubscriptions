@@ -160,7 +160,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 
 ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("sendError",$username,pPivot,"","","","",pEmail,pName,.pEvent)
+	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("sendError",$username,pPivot,"","","","",pEmail,pName,.pEvent)
 	
 	If $$$ISERR(tLog) Quit tLog
 	
