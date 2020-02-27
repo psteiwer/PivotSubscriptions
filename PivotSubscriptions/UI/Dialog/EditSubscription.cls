@@ -49,6 +49,9 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 		<image src="deepsee/ds2_magnify_18.png" width="16" height="16" title="Add custom filter" onclick="zenPage.customFilter();"/>
 	</vgroup>
 </hgroup>
+<expando caption="Custom Email" expanded="false">
+	<textarea id="CustomEmailText" label="Custom Email Text. Included before Pivot Table in Email." cols="50" rows="5"/>
+</expando>
 </pane>
 }
 
@@ -74,6 +77,7 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("Format").value=tSubscription.Format
 		Set ..%GetComponentById("Emails").value=tSubscription.Emails
 		Set ..%GetComponentById("SubscriptionName").value=tSubscription.Name
+		Set ..%GetComponentById("CustomEmailText").value=tSubscription.CustomEmailText
 
 		// Populate CustomFilters
 		Set tKey=""
@@ -122,8 +126,9 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var emails=zen('Emails').getValue();
 		var name=zen('SubscriptionName').getValue();
 		var pivot=this.pivotName;
+		var emailtext=zen('CustomEmailText').getValue();
 		
-		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name);
+		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name,emailtext);
 
 		if (status!=1) {
 			alert("Error during save, see Event Log for more details.");
@@ -140,7 +145,7 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName, pEmailText) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
   
@@ -163,6 +168,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSubscription.Format=pFormat
 	Set tSubscription.Emails=pEmails
 	Set tSubscription.Name=pName
+	Set tSubscription.CustomEmailText=pEmailText
 
 	// Get Custom Filter info
 	Set tKey=""
