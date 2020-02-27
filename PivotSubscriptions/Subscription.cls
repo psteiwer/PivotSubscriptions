@@ -23,6 +23,8 @@ Property Name As %String(MAXLEN = 100);
 
 Property CustomFilters As array Of %String(MAXLEN = "");
 
+Property CustomEmailText As %String(MAXLEN = "");
+
 Storage Default
 {
 <Data name="CustomFilters">
@@ -60,6 +62,9 @@ Storage Default
 </Value>
 <Value name="10">
 <Value>Name</Value>
+</Value>
+<Value name="11">
+<Value>CustomEmailText</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>

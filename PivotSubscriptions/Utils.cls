@@ -7,7 +7,7 @@ ClassMethod GetVersion() As %String
 }
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage)
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage)
 {
 	Set ^PivotSubscriptions.Settings("AdminEmail")=pAdminEmail
 	Set ^PivotSubscriptions.Settings("Http")=pHttp
@@ -15,6 +15,8 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, 
 	Set ^PivotSubscriptions.Settings("Port")=pPort
 	Set ^PivotSubscriptions.Settings("SendNoData")=pNoDataEmail
 	Set ^PivotSubscriptions.Settings("NoDataMessage")=pNoDataMessage
+	Set ^PivotSubscriptions.Settings("CustomFooter")=pCustomFooter
+	Set ^PivotSubscriptions.Settings("CustomFooterMessage")=pCustomFooterMessage
 	
 	Quit $$$OK
 }
@@ -109,24 +111,33 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 	Do pMsg.TextData.WriteLine("<tr><td><p class='center'>")
 }
 
-/// Write footer for any email, including link generation
-ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
+ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage)
 {
 	Do ##class(PivotSubscriptions.Utils).GenerateLink(.link)
-
+	
 	Do pMsg.TextData.WriteLine("</p></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
-	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'><i>Pivot Subscriptions</i> by DeepSee</p></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><p class='tab'>2019&nbsp;<b>InterSystems Corporation</p></b></td></tr><tr><td><p class='tab'>One Memorial Drive, Cambridge, MA 02142</p></td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
+}
+
+/// Write footer for any email, including link generation
+ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
+{
+	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'>")
+	If ^PivotSubscriptions.Settings("CustomFooter") {
+		Do pMsg.TextData.WriteLine(^PivotSubscriptions.Settings("CustomFooterMessage"))
+	} Else {
+		Do pMsg.TextData.WriteLine("PivotSubcriptions for InterSystems IRIS Business Intelligence")
+	}
+	Do pMsg.TextData.WriteLine("</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
 }
 
 /// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
+ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus)
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
 	
-	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+	Set tFilename=$replace($zstrip(pSubscription.Name,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
@@ -135,6 +146,11 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
+		// Include Subscription's custom email text
+		If pSubscription.CustomEmailText'="" {
+			Do pMsg.TextData.WriteLine(pSubscription.CustomEmailText)
+		}
+
 		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 		While 'tStream.AtEnd {
 			Set line=tStream.ReadLine()
@@ -155,6 +171,7 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
 	}
 
+	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
