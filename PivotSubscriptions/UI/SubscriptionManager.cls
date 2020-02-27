@@ -141,7 +141,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	If $$$ISERR(tSC) {
 		Set tMsg=$System.Status.GetErrorText(tSC)
 	}
-	Set tSC=tEvent.LogUpdate(tSC)
+	Set tSC=tEvent.UpdateStatus(tSC)
 	
 	Quit tMsg
 }

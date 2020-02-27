@@ -55,7 +55,7 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 		Set tSC=ex.AsStatus()
 	}
 	// Update send event with status and end time
-	Set tSC=pEvent.LogUpdate(tSC)
+	Set tSC=pEvent.UpdateStatus(tSC)
 	If $$$ISERR(tSC) Quit tSC
 	
 	If '(##class(PivotSubscriptions.Utils).CheckTable(pName)) {

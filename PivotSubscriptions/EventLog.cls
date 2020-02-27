@@ -59,7 +59,7 @@ ClassMethod LogEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, 
 	Quit tSC
 }
 
-Method LogUpdate(pStatus) As %Status
+Method UpdateStatus(pStatus) As %Status
 {
 	Set tSC=$$$OK
 

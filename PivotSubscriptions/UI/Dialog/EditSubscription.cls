@@ -174,7 +174,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 
 	Set tSC=tSubscription.%Save()
 	
-	Do tEvent.LogUpdate(tSC)
+	Do tEvent.UpdateStatus(tSC)
 	
 	Quit tSC
 }
