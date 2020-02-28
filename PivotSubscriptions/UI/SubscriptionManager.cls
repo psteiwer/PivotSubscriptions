@@ -88,7 +88,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 ClientMethod editSubscription(pId, pPivot) [ Internal, Language = javascript ]
 {
 	var parms = {
-			MODE:"models",
+		MODE:"models",
 	};
 	
 	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=700,height=575',parms);
@@ -153,7 +153,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pId, pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
+		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pId,pPivot,pEmail,tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
 	
 		If $$$ISERR(tSC) {
 			Set tMsg=$System.Status.GetErrorText(tSC)
@@ -171,7 +171,8 @@ Method GetManagerEmail() As %String [ ZenMethod ]
 /// Query to get subscriptions for Subscription Manager display table.
 Query GetSubscriptionsForDisplay() As %SQLQuery
 {
-	SELECT ID,Name,Pivot,Emails FROM PivotSubscriptions.Subscription
+	SELECT ID,Name,Pivot,Emails
+	FROM PivotSubscriptions.Subscription
 }
 
 }

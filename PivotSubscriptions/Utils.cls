@@ -37,7 +37,7 @@ ClassMethod GetSettings(pSetting As %String, pDefaultValue As %String = "") As %
 	Quit $G(^PivotSubscriptions.Settings(pSetting),pDefaultValue)
 }
 
-ClassMethod GenerateLink(ByRef link As %String) As %Status
+ClassMethod GenerateLink(ByRef pLink As %String) As %Status
 {
 	Set tSC=$$$OK
 	
@@ -67,7 +67,7 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	Set tNamespace=$System.CSP.GetDefaultApp($Namespace)
 	Set tApplicationName="/PivotSubscriptions.UI.SubscriptionManager.zen"
 	
-	Set link=tWebServerPortUrl_tNamespace_tApplicationName
+	Set pLink=tWebServerPortUrl_tNamespace_tApplicationName
 	
 	Quit tSC
 }
@@ -84,19 +84,19 @@ ClassMethod CheckTable(pName As %String) As %Status
 	If $$$ISERR(tSC) Quit tSC
 	
 	Set tTableStatus=0
-	Set headerCount=0
+	Set tHeaderCount=0
 	// iterate through stream to check that table has actual data
 	While 'tStream.AtEnd {
-		Set line = tStream.ReadLine()
+		Set tLine=tStream.ReadLine()
 		
-		If $Find(line, "<th") {
-			Set headerCount=headerCount + 1
+		If $Find(tLine,"<th") {
+			Set tHeaderCount=tHeaderCount+1
 		}
 		
-		If $Find(line, "<td") {
+		If $Find(tLine,"<td") {
 			Set tTableStatus=1
 			// parameterize headerCount
-			If (headerCount > 20) {
+			If (tHeaderCount > 20) {
 				Set tTableStatus=0
 			}
 			Quit
@@ -118,11 +118,11 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 
 ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage)
 {
-	Do ##class(PivotSubscriptions.Utils).GenerateLink(.link)
+	Do ##class(PivotSubscriptions.Utils).GenerateLink(.tLink)
 	
 	Do pMsg.TextData.WriteLine("</p></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
+	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_tLink_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
 }
 
 /// Write footer for any email, including link generation
@@ -162,17 +162,17 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 
 		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 		While 'tStream.AtEnd {
-			Set line=tStream.ReadLine()
+			Set tLine=tStream.ReadLine()
 	
 			// properly center and format table to match the rest of the style of the email
-			If line="<table border=""0"">" {
+			If tLine="<table border=""0"">" {
 				Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
-			} ElseIf line="<table border=""1"">" {
+			} ElseIf tLine="<table border=""1"">" {
 				Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
-			} ElseIf (($Find(line, "<x")) || ($Find(line, "</x")) || ($Find(line, "<body>")) || ($Find(line, "<html>")) || (line = "</html>")) {
+			} ElseIf (($Find(tLine,"<x"))||($Find(tLine,"</x"))||($Find(tLine,"<body>"))||($Find(tLine,"<html>"))||(tLine="</html>")) {
 				Continue
 			} Else {
-				Do pMsg.TextData.WriteLine(line)
+				Do pMsg.TextData.WriteLine(tLine)
 			}
 		}
 	} Else {
@@ -191,32 +191,32 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	If $$$ISERR(tLog) Quit tLog
 	
 	// Generate email
-	Set server=##class(%Net.SMTP).%New()
-	Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
-	Set msg=##class(%Net.MailMessage).%New()
-	Set msg.From="PivotSubscriptions"
-	Set msg.ReplyTo=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail") // replace with admin email
+	Set tServer=##class(%Net.SMTP).%New()
+	Set tServer.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
+	Set tMsg=##class(%Net.MailMessage).%New()
+	Set tMsg.From="PivotSubscriptions"
+	Set tMsg.ReplyTo=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail") // replace with admin email
 
 	// Remove ".pivot" extension for subject
-	Set msg.Subject="Table Error detected for "_pName
-	Set msg.IsBinary=0
-	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
+	Set tMsg.Subject="Table Error detected for "_pName
+	Set tMsg.IsBinary=0
+	Set tMsg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
-	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pSubscription.Pivot,1,*-6)_"</b>.")
+	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(tMsg)
+	Do tMsg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pSubscription.Pivot,1,*-6)_"</b>.")
 	If pReason="NoResults" {
-		Do msg.TextData.WriteLine("No data populated for table/filters.<br>")
+		Do tMsg.TextData.WriteLine("No data populated for table/filters.<br>")
 	} ElseIf pReason="TooLarge" {
-		Do msg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
+		Do tMsg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
 	}
-	Do msg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
-	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
+	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
+	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(tMsg)
 
 	// Set recipient of email
-	Do msg.To.SetAt(^PivotSubscriptions.Settings("AdminEmail"),1)
+	Do tMsg.To.SetAt(^PivotSubscriptions.Settings("AdminEmail"),1)
 	
 	// Send email
-	Set tSC=server.Send(msg)
+	Set tSC=tServer.Send(tMsg)
 	Set tSC=pEvent.UpdateStatus($$$ERROR($$$GeneralError,pReason))
 	
 	Quit tSC

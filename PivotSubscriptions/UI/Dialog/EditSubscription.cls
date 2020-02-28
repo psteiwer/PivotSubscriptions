@@ -117,7 +117,6 @@ Method %OnAfterCreatePage() As %Status
 ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 {
 	try {
-		
 		var subscriptionid=zen('SubscriptionId').getValue();
 		var dayofweek=zen('DayOfWeek').getValue();
 		var hour=zen('Hour').getValue();
@@ -137,6 +136,7 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
+
 	return true;
 }
 

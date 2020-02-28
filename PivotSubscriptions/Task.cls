@@ -64,10 +64,10 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 	
 	// Iterate through all subscribers and send emails to each individually
-	For count=1:1:$l(pEmails,",") {
-		Set tEmail=$p(pEmails,",",count)
+	For tCount=1:1:$l(pEmails,",") {
+		Set tEmail=$p(pEmails,",",tCount)
 
-		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription", $username, pPivot, tSubscription.DayOfWeek, tSubscription.Hour, tSubscription.Minute, tSubscription.Format, tEmail, pName, .pEvent)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
 		If $$$ISERR(tSC) Quit tSC
 
 		Set tHasResults=0
