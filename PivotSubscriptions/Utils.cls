@@ -184,7 +184,7 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
+ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String) As %Status
 {
 	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,.pEvent)
@@ -211,6 +211,8 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 		Do tMsg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
 	}
 	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
+	Do tMsg.TextData.WriteLine("<br/><br/>MDX Executed:")
+	Do tMsg.TextData.WriteLine(pMDX)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(tMsg)
 
 	// Set recipient of email

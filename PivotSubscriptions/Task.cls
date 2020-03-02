@@ -111,7 +111,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 				} ElseIf 'tableStatus {
 					// Check if both configuration settings for admin email is valid before sending error message
 					If validAdminEmail {
-						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"TooLarge")
+						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"TooLarge",mdx)
 					}
 				}
 				
@@ -127,7 +127,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
-				Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"NoResults")
+				Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"NoResults",mdx)
 			}
 		}
 
