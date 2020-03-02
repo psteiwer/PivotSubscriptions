@@ -188,8 +188,30 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Quit tSC
 }
 
+Method ValidateEmails() As %Status [ ZenMethod ]
+{
+	Set tSC=$$$OK
+
+	Set tEmails=..%GetComponentById("Emails")
+	Set tEmails.value=$zstrip(tEmails.value,"*WC")
+	Do {
+		Set tUpdated=0
+		If $e(tEmails.value,1)="," {
+			Set tEmails.value=$e(tEmails.value,2,*)
+			Set tUpdated=1
+		}
+		If $e(tEmails.value,*)="," {
+			Set tEmails.value=$e(tEmails.value,1,*-1)
+			Set tUpdated=1
+		}
+	} While tUpdated
+
+	Quit tSC
+}
+
 ClientMethod populateEmailList() [ Language = javascript ]
 {
+	zenPage.ValidateEmails();
 	var emailList=zen('EmailList');
 	emailList.resetOptions();
 	
