@@ -17,7 +17,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
     cellSpacing="2"
 	fixedHeaders="false"
 	queryClass="PivotSubscriptions.EventLog"
-	queryName="GetEvents"
+	queryName="GetEventsForUI"
 	useSnapshot="true"
 	showQuery="false"
 	showZebra="true"
@@ -25,10 +25,17 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	pageSize="100"
 	maxRows="1000"
 	>
+	<column colName="Details" onclick="zenPage.viewDetails(#(%query.Details)#)" linkCaption="Details" link="#"/>
 </tablePane>
 </vgroup>
 </hgroup>
 </pane>
+}
+
+/// Creates edit popup.
+ClientMethod viewDetails(pId, pPivot) [ Internal, Language = javascript ]
+{
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EventDetails.cls?EVENTID='+pId,'EventDetails','status,resizable=yes,width=700,height=575');
 }
 
 /// Get the (localized) title string for the page.
