@@ -186,7 +186,8 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 
 ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,pEmail,pName,.pEvent)
+	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
+	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,.pEvent)
 
 	If $$$ISERR(tLog) Quit tLog
 	
@@ -195,7 +196,7 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	Set tServer.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
 	Set tMsg=##class(%Net.MailMessage).%New()
 	Set tMsg.From="PivotSubscriptions"
-	Set tMsg.ReplyTo=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail") // replace with admin email
+	Set tMsg.ReplyTo=tAdminEmail // replace with admin email
 
 	// Remove ".pivot" extension for subject
 	Set tMsg.Subject="Table Error detected for "_pName
@@ -213,7 +214,7 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(tMsg)
 
 	// Set recipient of email
-	Do tMsg.To.SetAt(^PivotSubscriptions.Settings("AdminEmail"),1)
+	Do tMsg.To.SetAt(tAdminEmail,1)
 	
 	// Send email
 	Set tSC=tServer.Send(tMsg)
