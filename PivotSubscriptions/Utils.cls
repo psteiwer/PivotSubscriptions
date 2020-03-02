@@ -284,4 +284,15 @@ ClassMethod GenerateFileForSubscription(pType = "Excel", pMDX, pCustomFilter, pN
 	Quit tSC
 }
 
+ClassMethod CheckUnsubscribe(pSubscriptionId, pEmail, pGUID) As %Boolean
+{
+	Set tConfirmed=0
+
+	Set tSQL="SELECT ID FROM PivotSubscriptions.EventLog WHERE Subscription=? AND Emails=? AND GUID=?"
+	Set tSQLRS=##class(%SQL.Statement).%ExecDirect(,tSQL,pSubscriptionId,pEmail,pGUID)
+	Set tConfirmed=tSQLRS.%Next()
+
+	Quit tConfirmed
+}
+
 }

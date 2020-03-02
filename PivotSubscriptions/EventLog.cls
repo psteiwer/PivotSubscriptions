@@ -27,6 +27,10 @@ Property Name As %String(MAXLEN = 100);
 
 Property Status As %Status;
 
+Property Subscription As PivotSubscriptions.Subscription;
+
+Property GUID As %String [ InitialExpression = {$System.Util.CreateGUID()} ];
+
 /// Takes in info about an Alert Task and logs the information to the TaskLog
 ClassMethod CreateEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
 {
@@ -141,6 +145,12 @@ Storage Default
 </Value>
 <Value name="14">
 <Value>Status</Value>
+</Value>
+<Value name="15">
+<Value>Subscription</Value>
+</Value>
+<Value name="16">
+<Value>GUID</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.EventLogD</DataLocation>
