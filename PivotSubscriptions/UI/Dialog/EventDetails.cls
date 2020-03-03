@@ -88,7 +88,7 @@ ClassMethod DrawDetails(pEventId) As %Status
             </tr>
             <tr>
                 <td>Time</td>
-                <td>#(tEvent.Hour)#:#(tEvent.Minute)#</td>
+                <td>#(tEvent.Hour)#:#($replace($j(tEvent.Minute,2)," ",0))#</td>
             </tr>
             <tr>
                 <td>Email</td>
