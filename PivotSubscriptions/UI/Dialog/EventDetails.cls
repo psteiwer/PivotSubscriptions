@@ -96,7 +96,7 @@ ClassMethod DrawDetails(pEventId) As %Status
             </tr>
             <tr>
                 <td>Status</td>
-                <td>#($system.Status.GetErrorText(tEvent.Status))#</td>
+                <td>#($Select(tEvent.Status:"OK",1:$system.Status.GetErrorText(tEvent.Status)))#</td>
             </tr>
         </table>
     >
