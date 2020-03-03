@@ -59,7 +59,7 @@ Method Unsubscribe(pEmail) As %Status
         Set ..Emails=$LTS(tEmailList,",")
         Set tSC=..%Save()
     }
-    
+
     Do tEvent.UpdateStatus(tSC)
 
     Quit tSC
