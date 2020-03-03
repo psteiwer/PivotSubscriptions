@@ -37,7 +37,7 @@ ClassMethod GetSettings(pSetting As %String, pDefaultValue As %String = "") As %
 	Quit $G(^PivotSubscriptions.Settings(pSetting),pDefaultValue)
 }
 
-ClassMethod GenerateLink(ByRef pLink As %String) As %Status
+ClassMethod GenerateLink(ByRef pLink As %String = "") As %Status
 {
 	Set tSC=$$$OK
 	
@@ -45,29 +45,24 @@ ClassMethod GenerateLink(ByRef pLink As %String) As %Status
 	If $$$ISERR(tSC) Quit tSC
 	
 	If ..CheckConfigurationGlobal("Http") {
-		Set tWebServerPortUrl=##class(PivotSubscriptions.Utils).GetSettings("Http")
+		Set pLink=##class(PivotSubscriptions.Utils).GetSettings("Http")
 	} Else {
-		Set tWebServerPortUrl="http://"
+		Set pLink="http://"
 	}
 	
 	If ..CheckConfigurationGlobal("Server") {
-		Set tWebServerPortUrl=tWebServerPortUrl_##class(PivotSubscriptions.Utils).GetSettings("Server")
+		Set pLink=pLink_##class(PivotSubscriptions.Utils).GetSettings("Server")
 	} Else {
-		Set tWebServerPortUrl=tWebServerPortUrl_h
+		Set pLink=pLink_h
 	}
 	
 	If ..CheckConfigurationGlobal("Port") {
-		Set tWebServerPortUrl=tWebServerPortUrl_":"_##class(PivotSubscriptions.Utils).GetSettings("Port")
+		Set pLink=pLink_":"_##class(PivotSubscriptions.Utils).GetSettings("Port")
 	} Else {
 		If '..CheckConfigurationGlobal("Server") {
-			Set tWebServerPortUrl=tWebServerPortUrl_":"_p
+			Set pLink=pLink_":"_p
 		}
 	}
-
-	Set tNamespace=$System.CSP.GetDefaultApp($Namespace)
-	Set tApplicationName="/PivotSubscriptions.UI.SubscriptionManager.zen"
-	
-	Set pLink=tWebServerPortUrl_tNamespace_tApplicationName
 	
 	Quit tSC
 }
@@ -116,13 +111,15 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 	Do pMsg.TextData.WriteLine("<tr><td><p class='center'>")
 }
 
-ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage)
+ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage, pUnsubscribeList)
 {
 	Do ##class(PivotSubscriptions.Utils).GenerateLink(.tLink)
+	Set tLink=tLink_"/api/pivotsubscriptionsunsubscribe/unsubscribe/"
+	Set tLink=tLink_$LTS(pUnsubscribeList,"/")
 	
 	Do pMsg.TextData.WriteLine("</p></td></tr>")
 	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_tLink_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
+	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>To Unsubscribe, <i><a href='"_tLink_"'>click here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
 }
 
 /// Write footer for any email, including link generation
@@ -138,7 +135,7 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 }
 
 /// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus)
+ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus, pUnsubscribeList)
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
 
@@ -180,14 +177,14 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 		Do pMsg.TextData.WriteLine("Pivot table is too big to be embedded. Please see attachment.")
 	}
 
-	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg)
+	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg,pUnsubscribeList)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
+ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String) As %Status
 {
 	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
-	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,.pEvent)
+	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",pSubscription.%Id(),$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,.pEvent)
 
 	If $$$ISERR(tLog) Quit tLog
 	
@@ -211,6 +208,8 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 		Do tMsg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
 	}
 	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
+	Do tMsg.TextData.WriteLine("<br/><br/>MDX Executed:")
+	Do tMsg.TextData.WriteLine(pMDX)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(tMsg)
 
 	// Set recipient of email
@@ -280,6 +279,17 @@ ClassMethod GenerateFileForSubscription(pType = "Excel", pMDX, pCustomFilter, pN
 	}
 	
 	Quit tSC
+}
+
+ClassMethod CheckUnsubscribe(pSubscriptionId, pEmail, pGUID) As %Boolean
+{
+	Set tConfirmed=0
+
+	Set tSQL="SELECT ID FROM PivotSubscriptions.EventLog WHERE Subscription=? AND Emails=? AND GUID=?"
+	Set tSQLRS=##class(%SQL.Statement).%ExecDirect(,tSQL,pSubscriptionId,pEmail,pGUID)
+	Set tConfirmed=tSQLRS.%Next()
+
+	Quit tConfirmed
 }
 
 }

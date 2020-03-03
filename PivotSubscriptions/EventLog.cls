@@ -3,7 +3,7 @@ Class PivotSubscriptions.EventLog Extends %Persistent
 {
 
 /// Event Type covers: create, update, delete, sendSubscription, and tableError
-Property EventType As %String(VALUELIST = ",create,update,delete,sendSubscription,tableError");
+Property EventType As %String(VALUELIST = ",create,update,delete,sendSubscription,tableError,unsubscribe");
 
 Property StartTime As %TimeStamp [ InitialExpression = {$zdt($h, 3, 1)} ];
 
@@ -27,13 +27,18 @@ Property Name As %String(MAXLEN = 100);
 
 Property Status As %Status;
 
+Property Subscription As PivotSubscriptions.Subscription;
+
+Property GUID As %String [ InitialExpression = {$System.Util.CreateGUID()} ];
+
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod CreateEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
+ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
 {
 	Set tSC=$$$OK
 	
 	Set tEventLog=##class(PivotSubscriptions.EventLog).%New()
 	Set tEventLog.EventType=pType
+	Do tEventLog.SubscriptionSetObjectId(pSubscriptionId)
 	Set tEventLog.UserName=pUser
 	Set tEventLog.Pivot=pPivot
 	Set tEventLog.Name=pName
@@ -90,9 +95,9 @@ ClassMethod DayOfWeekDisplay(pDayOfWeek) As %String [ SqlProc ]
 	Quit pDayOfWeek
 }
 
-Query GetEvents() As %SQLQuery
+Query GetEventsForUI() As %SQLQuery
 {
-    SELECT StartTime,EndTime,EventType,Name,Pivot,UserName,PivotSubscriptions.EventLog_DayOfWeekDisplay(DayOfWeek) As DayOfWeek,Format,"Hour","Minute",Emails,Status
+    SELECT ID As Details,StartTime,EndTime,EventType,Name,Emails,Status
     FROM PivotSubscriptions.EventLog 
     ORDER BY ID DESC
 }
@@ -141,6 +146,12 @@ Storage Default
 </Value>
 <Value name="14">
 <Value>Status</Value>
+</Value>
+<Value name="15">
+<Value>Subscription</Value>
+</Value>
+<Value name="16">
+<Value>GUID</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.EventLogD</DataLocation>
