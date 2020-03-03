@@ -51,6 +51,10 @@ ClassMethod DrawDetails(pEventId) As %Status
                 <td>#(pEventId)#</td>
             </tr>
             <tr>
+                <td>GUID</td>
+                <td>#(tEvent.GUID)#</td>
+            </tr>
+            <tr>
                 <td>Type</td>
                 <td>#(tEvent.EventType)#</td>
             </tr>

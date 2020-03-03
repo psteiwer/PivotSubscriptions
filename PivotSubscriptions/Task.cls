@@ -67,7 +67,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	For tCount=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",tCount)
 
-		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
 		If $$$ISERR(tSC) Quit tSC
 
 		Set tHasResults=0
@@ -89,6 +89,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			Set server.smtpserver=##class(%SYS.Task.Config).GetData("MailServer")
 			Set msg=##class(%Net.MailMessage).%New()
 			Set msg.From="PivotSubscriptions"
+			Do msg.To.SetAt(tEmail,1)
 			
 			Set validAdminEmail=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
 			
@@ -100,10 +101,12 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			Set msg.Subject=pName
 			Set msg.IsBinary=0
 			Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
+
+			Set tUnsubscribeList=$LB(tSubscription.%Id(),tEmail,pEvent.GUID)
 			
 			If tHasResults {
 				// Add attachment
-				Do ##class(PivotSubscriptions.Utils).WriteEmail(tSubscription, msg, tableStatus)
+				Do ##class(PivotSubscriptions.Utils).WriteEmail(tSubscription,msg,tableStatus,tUnsubscribeList)
 
 				// if table is too large, then just attach Excel instead
 				If ((pFormat = "PDF") && (tableStatus)) {
@@ -124,14 +127,12 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			} Else {
 				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
 				Do msg.TextData.WriteLine(##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage","No data for requested pivot."))
-				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg)
+				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg,tUnsubscribeList)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
 				Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"NoResults",mdx)
 			}
 		}
-
-		Do msg.To.SetAt(tEmail,1)
 		
 		// Send email
 		If tHasResults||##class(PivotSubscriptions.Utils).GetSettings("SendNoData",1) {
