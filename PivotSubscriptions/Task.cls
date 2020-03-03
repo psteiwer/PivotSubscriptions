@@ -12,7 +12,7 @@ Method OnTask() As %Status
 	Set tHour=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",1)
 	Set tMinute=$PIECE($ZTIME($PIECE($HOROLOG,",",2),2),":",2)
 	
-	If $G(^PivotSubscriptions.Settings("TestEnv")) {
+	If ##class(PivotSubscriptions.Utils).GetSettings("TestEnv",0) {
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
 		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
@@ -41,9 +41,6 @@ Method OnTask() As %Status
 ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat As %String, pDayOfWeek, pHour, pMinute, pName) As %Status
 {
 	Set tSC=$$$OK
-
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("sendSubscription", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, .pEvent)
-	If $$$ISERR(tSC) Quit tSC
 	
 	If pName="" {
 		Set pName=$E(pPivot,1,*-6)
@@ -53,14 +50,6 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pID,pPivot,pEmails,pFormat,pName)
 	} Catch ex {
 		Set tSC=ex.AsStatus()
-	}
-	// Update send event with status and end time
-	Set tSC=pEvent.LogUpdate(tSC)
-	If $$$ISERR(tSC) Quit tSC
-	
-	If '(##class(PivotSubscriptions.Utils).CheckTable(pName)) {
-		Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("tableError", $username, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName)
-		If $$$ISERR(tSC) Quit tSC
 	}
 	
 	Quit tSC
@@ -72,14 +61,17 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	Set tFilename=""
 	
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
+	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 	
 	// Iterate through all subscribers and send emails to each individually
-	For count=1:1:$l(pEmails,",") {
-		Set tEmail=$p(pEmails,",",count)
+	For tCount=1:1:$l(pEmails,",") {
+		Set tEmail=$p(pEmails,",",tCount)
+
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
+		If $$$ISERR(tSC) Quit tSC
 
 		Set tHasResults=0
 
-		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 		Set tCustomFilter=tSubscription.CustomFilters.GetAt(tEmail)
 		Set tSC=##class(PivotSubscriptions.Utils).ExecuteForSubscription(mdx,tCustomFilter,.tHasResults)
 		
@@ -101,7 +93,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			Set validAdminEmail=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
 			
 			If validAdminEmail {
-				Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail")
+				Set msg.ReplyTo=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 			}
 			
 			// Remove ".pivot" extension for subject
@@ -110,9 +102,8 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 			Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 			
 			If tHasResults {
-				
 				// Add attachment
-				Do ##class(PivotSubscriptions.Utils).WriteEmail(pName, msg, tableStatus)
+				Do ##class(PivotSubscriptions.Utils).WriteEmail(tSubscription, msg, tableStatus)
 
 				// if table is too large, then just attach Excel instead
 				If ((pFormat = "PDF") && (tableStatus)) {
@@ -120,7 +111,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 				} ElseIf 'tableStatus {
 					// Check if both configuration settings for admin email is valid before sending error message
 					If validAdminEmail {
-						Do ##class(PivotSubscriptions.Utils).SendErrorMessage(pPivot,^PivotSubscriptions.Settings("AdminEmail"),pName)
+						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"TooLarge")
 					}
 				}
 				
@@ -132,18 +123,22 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 				}
 			} Else {
 				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-				Do msg.TextData.WriteLine($G(^PivotSubscriptions.Settings("NoDataMessage"),"No data for requested pivot."))
+				Do msg.TextData.WriteLine(##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage","No data for requested pivot."))
+				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
+
+				Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"NoResults")
 			}
 		}
 
 		Do msg.To.SetAt(tEmail,1)
 		
 		// Send email
-		If tHasResults||$G(^PivotSubscriptions.Settings("SendNoData"),1) {
+		If tHasResults||##class(PivotSubscriptions.Utils).GetSettings("SendNoData",1) {
 			Set tSC=server.Send(msg)
+			Set tSC=pEvent.UpdateStatus(tSC)
+			If $$$ISERR(tSC) Quit tSC
 		}
-		// TODO: Log individual send status?
 			
 		If tHasResults {
 			// Delete file

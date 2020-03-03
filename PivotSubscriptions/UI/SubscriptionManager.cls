@@ -88,7 +88,7 @@ ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = java
 ClientMethod editSubscription(pId, pPivot) [ Internal, Language = javascript ]
 {
 	var parms = {
-			MODE:"models",
+		MODE:"models",
 	};
 	
 	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=700,height=575',parms);
@@ -133,7 +133,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	Set tMsg="Subscription Deleted."
 	
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent("delete",$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
+	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
 	
 	If $$$ISERR(tSC) Quit tSC
 	
@@ -141,7 +141,7 @@ Method Delete(pId As %Integer) As %String [ ZenMethod ]
 	If $$$ISERR(tSC) {
 		Set tMsg=$System.Status.GetErrorText(tSC)
 	}
-	Set tSC=tEvent.LogUpdate(tSC)
+	Set tSC=tEvent.UpdateStatus(tSC)
 	
 	Quit tMsg
 }
@@ -153,7 +153,7 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 	
 	If pId'=0 {
 		Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pId)
-		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pId, pPivot, pEmail, tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
+		Set tSC=##class(PivotSubscriptions.Task).SendSubscription(pId,pPivot,pEmail,tSubscription.Format,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Name)
 	
 		If $$$ISERR(tSC) {
 			Set tMsg=$System.Status.GetErrorText(tSC)
@@ -165,19 +165,14 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 
 Method GetManagerEmail() As %String [ ZenMethod ]
 {
-	Set tSC=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
-	
-	If tSC {
-		Quit ^PivotSubscriptions.Settings("AdminEmail")
-	}
-	
-	Quit ""
+	Quit ##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 }
 
 /// Query to get subscriptions for Subscription Manager display table.
 Query GetSubscriptionsForDisplay() As %SQLQuery
 {
-	SELECT ID,Name,Pivot,Emails FROM PivotSubscriptions.Subscription
+	SELECT ID,Name,Pivot,Emails
+	FROM PivotSubscriptions.Subscription
 }
 
 }

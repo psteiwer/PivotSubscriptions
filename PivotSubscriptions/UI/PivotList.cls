@@ -116,8 +116,8 @@ ClassMethod GetPivotsFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef A
 
 ClassMethod GetPivotsClose(ByRef qHandle As %Binary) As %Status [ PlaceAfter = GetPivotsFetch ]
 {
-        Set qHandle=""
-        Quit $$$OK
+    Set qHandle=""
+    Quit $$$OK
 }
 
 }

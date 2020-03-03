@@ -3,11 +3,11 @@ Class PivotSubscriptions.Utils
 
 ClassMethod GetVersion() As %String
 {
-	Quit "v1.2.2"
+	Quit "v1.3.0"
 }
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage)
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage)
 {
 	Set ^PivotSubscriptions.Settings("AdminEmail")=pAdminEmail
 	Set ^PivotSubscriptions.Settings("Http")=pHttp
@@ -15,6 +15,8 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, 
 	Set ^PivotSubscriptions.Settings("Port")=pPort
 	Set ^PivotSubscriptions.Settings("SendNoData")=pNoDataEmail
 	Set ^PivotSubscriptions.Settings("NoDataMessage")=pNoDataMessage
+	Set ^PivotSubscriptions.Settings("CustomFooter")=pCustomFooter
+	Set ^PivotSubscriptions.Settings("CustomFooterMessage")=pCustomFooterMessage
 	
 	Quit $$$OK
 }
@@ -22,7 +24,7 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, 
 ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 {
 	If ((pConfigurationOptionName'="") && $DATA(^PivotSubscriptions.Settings(pConfigurationOptionName))) {
-		If (^PivotSubscriptions.Settings(pConfigurationOptionName)'="") {
+		If ##class(PivotSubscriptions.Utils).GetSettings(pConfigurationOptionName)'="" {
 			Quit 1
 		}
 	}
@@ -30,7 +32,12 @@ ClassMethod CheckConfigurationGlobal(pConfigurationOptionName As %String)
 	Quit 0
 }
 
-ClassMethod GenerateLink(ByRef link As %String) As %Status
+ClassMethod GetSettings(pSetting As %String, pDefaultValue As %String = "") As %String
+{
+	Quit $G(^PivotSubscriptions.Settings(pSetting),pDefaultValue)
+}
+
+ClassMethod GenerateLink(ByRef pLink As %String) As %Status
 {
 	Set tSC=$$$OK
 	
@@ -38,19 +45,19 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	If $$$ISERR(tSC) Quit tSC
 	
 	If ..CheckConfigurationGlobal("Http") {
-		Set tWebServerPortUrl=^PivotSubscriptions.Settings("Http")
+		Set tWebServerPortUrl=##class(PivotSubscriptions.Utils).GetSettings("Http")
 	} Else {
 		Set tWebServerPortUrl="http://"
 	}
 	
 	If ..CheckConfigurationGlobal("Server") {
-		Set tWebServerPortUrl=tWebServerPortUrl_^PivotSubscriptions.Settings("Server")
+		Set tWebServerPortUrl=tWebServerPortUrl_##class(PivotSubscriptions.Utils).GetSettings("Server")
 	} Else {
 		Set tWebServerPortUrl=tWebServerPortUrl_h
 	}
 	
 	If ..CheckConfigurationGlobal("Port") {
-		Set tWebServerPortUrl=tWebServerPortUrl_":"_^PivotSubscriptions.Settings("Port")
+		Set tWebServerPortUrl=tWebServerPortUrl_":"_##class(PivotSubscriptions.Utils).GetSettings("Port")
 	} Else {
 		If '..CheckConfigurationGlobal("Server") {
 			Set tWebServerPortUrl=tWebServerPortUrl_":"_p
@@ -60,7 +67,7 @@ ClassMethod GenerateLink(ByRef link As %String) As %Status
 	Set tNamespace=$System.CSP.GetDefaultApp($Namespace)
 	Set tApplicationName="/PivotSubscriptions.UI.SubscriptionManager.zen"
 	
-	Set link=tWebServerPortUrl_tNamespace_tApplicationName
+	Set pLink=tWebServerPortUrl_tNamespace_tApplicationName
 	
 	Quit tSC
 }
@@ -77,19 +84,19 @@ ClassMethod CheckTable(pName As %String) As %Status
 	If $$$ISERR(tSC) Quit tSC
 	
 	Set tTableStatus=0
-	Set headerCount=0
+	Set tHeaderCount=0
 	// iterate through stream to check that table has actual data
 	While 'tStream.AtEnd {
-		Set line = tStream.ReadLine()
+		Set tLine=tStream.ReadLine()
 		
-		If $Find(line, "<th") {
-			Set headerCount=headerCount + 1
+		If $Find(tLine,"<th") {
+			Set tHeaderCount=tHeaderCount+1
 		}
 		
-		If $Find(line, "<td") {
+		If $Find(tLine,"<td") {
 			Set tTableStatus=1
 			// parameterize headerCount
-			If (headerCount > 20) {
+			If (tHeaderCount > 20) {
 				Set tTableStatus=0
 			}
 			Quit
@@ -109,24 +116,37 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 	Do pMsg.TextData.WriteLine("<tr><td><p class='center'>")
 }
 
+ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage)
+{
+	Do ##class(PivotSubscriptions.Utils).GenerateLink(.tLink)
+	
+	Do pMsg.TextData.WriteLine("</p></td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
+	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_tLink_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
+}
+
 /// Write footer for any email, including link generation
 ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 {
-	Do ##class(PivotSubscriptions.Utils).GenerateLink(.link)
-
-	Do pMsg.TextData.WriteLine("</p></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><table><tr><td>&nbsp;</td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td>&nbsp;</td></tr><tr><td>You can manage your subscriptions <i><a href='"_link_"'>here</a></i>.</td></tr><tr><td><i>You can edit days of the week/time/format/recipients and delete in the Subscriptions Manager portal</i>.</td></tr><tr><td>&nbsp;</td></tr></table></td></tr><tr><td>")
-	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'><i>Pivot Subscriptions</i> by DeepSee</p></td></tr>")
-	Do pMsg.TextData.WriteLine("<tr><td><p class='tab'>2019&nbsp;<b>InterSystems Corporation</p></b></td></tr><tr><td><p class='tab'>One Memorial Drive, Cambridge, MA 02142</p></td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
+	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'>")
+	If ^PivotSubscriptions.Settings("CustomFooter") {
+		Do pMsg.TextData.WriteLine(^PivotSubscriptions.Settings("CustomFooterMessage"))
+	} Else {
+		Do pMsg.TextData.WriteLine("PivotSubcriptions for InterSystems IRIS Business Intelligence")
+	}
+	Do pMsg.TextData.WriteLine("</td></tr><tr><td>&nbsp;</td></tr></table></td></tr></table></body></html>")
 }
 
 /// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
+ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus)
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
-	
-	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
+
+	Set tName=pSubscription.Name
+	If tName="" {
+		Set tName=$E(pSubscription.Pivot,1,*-6)
+	}
+	Set tFilename=$replace($zstrip(tName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
@@ -135,57 +155,70 @@ ClassMethod WriteEmail(pName As %String, pMsg As %Net.MailMessage, pTableStatus)
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
+		// Include Subscription's custom email text
+		If pSubscription.CustomEmailText'="" {
+			Do pMsg.TextData.WriteLine(pSubscription.CustomEmailText)
+		}
+
 		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 		While 'tStream.AtEnd {
-			Set line=tStream.ReadLine()
+			Set tLine=tStream.ReadLine()
 	
 			// properly center and format table to match the rest of the style of the email
-			If line="<table border=""0"">" {
+			If tLine="<table border=""0"">" {
 				Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
-			} ElseIf line="<table border=""1"">" {
+			} ElseIf tLine="<table border=""1"">" {
 				Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
-			} ElseIf (($Find(line, "<x")) || ($Find(line, "</x")) || ($Find(line, "<body>")) || ($Find(line, "<html>")) || (line = "</html>")) {
+			} ElseIf (($Find(tLine,"<x"))||($Find(tLine,"</x"))||($Find(tLine,"<body>"))||($Find(tLine,"<html>"))||(tLine="</html>")) {
 				Continue
 			} Else {
-				Do pMsg.TextData.WriteLine(line)
+				Do pMsg.TextData.WriteLine(tLine)
 			}
 		}
 	} Else {
 		// custom error message
-		Do pMsg.TextData.WriteLine("Pivot table is unpopulated or too big. Please see Excel table.")
+		Do pMsg.TextData.WriteLine("Pivot table is too big to be embedded. Please see attachment.")
 	}
 
+	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg)
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod SendErrorMessage(pPivot As %String, pEmail As %String, pName As %String) As %Status
+ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String) As %Status
 {
-	Set tLog=##class(PivotSubscriptions.EventLog).LogEvent("sendError",$username,pPivot,"","","","",pEmail,pName,.pEvent)
-	
+	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
+	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,.pEvent)
+
 	If $$$ISERR(tLog) Quit tLog
 	
 	// Generate email
-	Set server=##class(%Net.SMTP).%New()
-	Set server.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
-	Set msg=##class(%Net.MailMessage).%New()
-	Set msg.From="PivotSubscriptions"
-	Set msg.ReplyTo=^PivotSubscriptions.Settings("AdminEmail") // replace with admin email
+	Set tServer=##class(%Net.SMTP).%New()
+	Set tServer.smtpserver = ##class(%SYS.Task.Config).GetData("MailServer")
+	Set tMsg=##class(%Net.MailMessage).%New()
+	Set tMsg.From="PivotSubscriptions"
+	Set tMsg.ReplyTo=tAdminEmail // replace with admin email
 
 	// Remove ".pivot" extension for subject
-	Set msg.Subject="Table Error detected for "_pName
-	Set msg.IsBinary=0
-	Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
+	Set tMsg.Subject="Table Error detected for "_pName
+	Set tMsg.IsBinary=0
+	Set tMsg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 	
-	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-	Do msg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pPivot,1,*-6)_"</b>, either there being no data populated in the table or the pivot table being too large to be embedded or truncated in the PDF.<br><br>Please check the <i>Subscription Manager</i>.")
-	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
+	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(tMsg)
+	Do tMsg.TextData.WriteLine("There was an table error detected for <b>"_pName_"</b> based on <b>"_$E(pSubscription.Pivot,1,*-6)_"</b>.")
+	If pReason="NoResults" {
+		Do tMsg.TextData.WriteLine("No data populated for table/filters.<br>")
+	} ElseIf pReason="TooLarge" {
+		Do tMsg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
+	}
+	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
+	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(tMsg)
 
 	// Set recipient of email
-	Do msg.To.SetAt(pEmail,1)
-			
+	Do tMsg.To.SetAt(tAdminEmail,1)
+	
 	// Send email
-	Set tSC=server.Send(msg)
-	Set tSC=pEvent.LogUpdate(tSC)
+	Set tSC=tServer.Send(tMsg)
+	Set tSC=pEvent.UpdateStatus($$$ERROR($$$GeneralError,pReason))
 	
 	Quit tSC
 }

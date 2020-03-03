@@ -49,6 +49,9 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 		<image src="deepsee/ds2_magnify_18.png" width="16" height="16" title="Add custom filter" onclick="zenPage.customFilter();"/>
 	</vgroup>
 </hgroup>
+<expando caption="Custom Email" expanded="false">
+	<textarea id="CustomEmailText" label="Custom Email Text. Included before Pivot Table in Email." cols="50" rows="5"/>
+</expando>
 </pane>
 }
 
@@ -74,6 +77,7 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("Format").value=tSubscription.Format
 		Set ..%GetComponentById("Emails").value=tSubscription.Emails
 		Set ..%GetComponentById("SubscriptionName").value=tSubscription.Name
+		Set ..%GetComponentById("CustomEmailText").value=tSubscription.CustomEmailText
 
 		// Populate CustomFilters
 		Set tKey=""
@@ -113,7 +117,6 @@ Method %OnAfterCreatePage() As %Status
 ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 {
 	try {
-		
 		var subscriptionid=zen('SubscriptionId').getValue();
 		var dayofweek=zen('DayOfWeek').getValue();
 		var hour=zen('Hour').getValue();
@@ -122,8 +125,9 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var emails=zen('Emails').getValue();
 		var name=zen('SubscriptionName').getValue();
 		var pivot=this.pivotName;
+		var emailtext=zen('CustomEmailText').getValue();
 		
-		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name);
+		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name,emailtext);
 
 		if (status!=1) {
 			alert("Error during save, see Event Log for more details.");
@@ -132,6 +136,7 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
+
 	return true;
 }
 
@@ -140,7 +145,7 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName, pEmailText) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
   
@@ -154,14 +159,16 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 		Set tSubscription.Pivot=pPivot
 		Set tEventType="create"
 	}
-	Set tSC=##class(PivotSubscriptions.EventLog).LogEvent(tEventType,$username,tSubscription.Pivot,pDayOfWeek,pHour,pMinute,pFormat,pEmails,pName,.tEvent)
-		
+	
+	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
+	
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
 	Set tSubscription.Minute=pMinute
 	Set tSubscription.Format=pFormat
 	Set tSubscription.Emails=pEmails
 	Set tSubscription.Name=pName
+	Set tSubscription.CustomEmailText=pEmailText
 
 	// Get Custom Filter info
 	Set tKey=""
@@ -173,14 +180,38 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	}
 
 	Set tSC=tSubscription.%Save()
-	
-	Do tEvent.LogUpdate(tSC)
-	
+	Do tEvent.UpdateStatus(tSC)
+	If tSC {
+		Do tEvent.UpdateEvent(pDayOfWeek,pHour,pMinute,pFormat,pEmails,pName)
+	}
+
+	Quit tSC
+}
+
+Method ValidateEmails() As %Status [ ZenMethod ]
+{
+	Set tSC=$$$OK
+
+	Set tEmails=..%GetComponentById("Emails")
+	Set tEmails.value=$zstrip(tEmails.value,"*WC")
+	Do {
+		Set tUpdated=0
+		If $e(tEmails.value,1)="," {
+			Set tEmails.value=$e(tEmails.value,2,*)
+			Set tUpdated=1
+		}
+		If $e(tEmails.value,*)="," {
+			Set tEmails.value=$e(tEmails.value,1,*-1)
+			Set tUpdated=1
+		}
+	} While tUpdated
+
 	Quit tSC
 }
 
 ClientMethod populateEmailList() [ Language = javascript ]
 {
+	zenPage.ValidateEmails();
 	var emailList=zen('EmailList');
 	emailList.resetOptions();
 	
