@@ -114,7 +114,7 @@ ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage, pUnsubscribeList)
 {
 	Do ##class(PivotSubscriptions.Utils).GenerateLink(.tLink)
-	Set tLink=tLink_"/csp/pivotsubscriptionsunsubscribe/unsubscribe/"
+	Set tLink=tLink_"/api/pivotsubscriptionsunsubscribe/unsubscribe/"
 	Set tLink=tLink_$LTS(pUnsubscribeList,"/")
 	
 	Do pMsg.TextData.WriteLine("</p></td></tr>")
