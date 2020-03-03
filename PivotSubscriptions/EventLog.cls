@@ -38,7 +38,7 @@ ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour
 	
 	Set tEventLog=##class(PivotSubscriptions.EventLog).%New()
 	Set tEventLog.EventType=pType
-	Set tEventLog.Subscription=pSubscriptionId
+	Set tEventLog.Subscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
 	Set tEventLog.UserName=pUser
 	Set tEventLog.Pivot=pPivot
 	Set tEventLog.Name=pName
