@@ -37,6 +37,7 @@ Method Unsubscribe(pEmail) As %Status
         If ..Emails=pEmail {
             // This is the only Email for the subscription, delete subscription
             Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(..%Id())
+            Do tEvent.UpdateStatus(tSC)
             Return tSC
         }
     }
