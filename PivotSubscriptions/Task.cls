@@ -67,7 +67,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	For tCount=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",tCount)
 
-		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
 		If $$$ISERR(tSC) Quit tSC
 
 		Set tHasResults=0

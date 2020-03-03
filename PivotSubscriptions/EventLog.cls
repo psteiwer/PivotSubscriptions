@@ -32,12 +32,13 @@ Property Subscription As PivotSubscriptions.Subscription;
 Property GUID As %String [ InitialExpression = {$System.Util.CreateGUID()} ];
 
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod CreateEvent(pType, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
+ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
 {
 	Set tSC=$$$OK
 	
 	Set tEventLog=##class(PivotSubscriptions.EventLog).%New()
 	Set tEventLog.EventType=pType
+	Set tEventLog.Subscription=pSubscriptionId
 	Set tEventLog.UserName=pUser
 	Set tEventLog.Pivot=pPivot
 	Set tEventLog.Name=pName

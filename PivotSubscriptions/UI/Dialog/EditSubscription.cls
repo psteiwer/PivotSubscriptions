@@ -160,7 +160,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 		Set tEventType="create"
 	}
 	
-	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
+	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pSubscriptionId,$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
 	
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
