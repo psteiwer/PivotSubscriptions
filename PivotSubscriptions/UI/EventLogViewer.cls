@@ -22,7 +22,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	showQuery="false"
 	showZebra="true"
 	showRowNumbers="false"
-	pageSize="100"
+	pageSize="50"
 	maxRows="1000"
 	>
 	<column colName="Details" onclick="zenPage.viewDetails(#(%query.Details)#)" linkCaption="Details" link="#"/>
