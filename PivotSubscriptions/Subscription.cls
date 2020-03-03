@@ -45,7 +45,9 @@ Method Unsubscribe(pEmail) As %Status
     }
 
     Set tPosition=$Listfind(tEmailList,pEmail)
-    If tPosition=1 {
+    If tPosition=0 {
+        Set tSC=$$$ERROR($$$GeneralError,"Not subscribed")
+    } ElseIf tPosition=1 {
         Set tEmailList=$List(tEmailList,2,*)
     } ElseIf tPosition=$LL(tEmailList) {
         Set tEmailList=$List(tEmailList,1,*-1)    
@@ -53,9 +55,11 @@ Method Unsubscribe(pEmail) As %Status
         Set tEmailList=$List(tEmailList,1,tPosition-1)_$List(tEmailList,tPosition+1,*)
     }
 
-    Set ..Emails=$LTS(tEmailList,",")
-    Set tSC=..%Save()
-
+    If tPosition'=0 {
+        Set ..Emails=$LTS(tEmailList,",")
+        Set tSC=..%Save()
+    }
+    
     Do tEvent.UpdateStatus(tSC)
 
     Quit tSC
