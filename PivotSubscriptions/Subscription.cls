@@ -44,6 +44,8 @@ Method Unsubscribe(pEmail) As %Status
     Set tPosition=$Listfind(tEmailList,pEmail)
     If tPosition=1 {
         Set tEmailList=$List(tEmailList,2,*)
+    } ElseIf tPosition=$LL(tEmailList) {
+        Set tEmailList=$List(tEmailList,1,*-1)    
     } Else {
         Set tEmailList=$List(tEmailList,1,tPosition-1)_$List(tEmailList,tPosition+1,*)
     }
