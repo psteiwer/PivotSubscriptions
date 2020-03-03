@@ -3,7 +3,7 @@ Class PivotSubscriptions.EventLog Extends %Persistent
 {
 
 /// Event Type covers: create, update, delete, sendSubscription, and tableError
-Property EventType As %String(VALUELIST = ",create,update,delete,sendSubscription,tableError,unsubscribe");
+Property EventType As %String(VALUELIST = ",create,update,delete,sendSubscription,sendNow,tableError,unsubscribe");
 
 Property StartTime As %TimeStamp [ InitialExpression = {$zdt($h, 3, 1)} ];
 
