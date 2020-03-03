@@ -3,7 +3,7 @@ Class PivotSubscriptions.Utils
 
 ClassMethod GetVersion() As %String
 {
-	Quit "v1.3.0"
+	Quit "v1.4.0"
 }
 
 /// Utility method for saving and updating global variables
