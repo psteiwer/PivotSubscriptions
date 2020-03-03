@@ -97,7 +97,7 @@ ClassMethod DayOfWeekDisplay(pDayOfWeek) As %String [ SqlProc ]
 
 Query GetEventsForUI() As %SQLQuery
 {
-    SELECT ID As Details,StartTime,EndTime,EventType,Name,Emails,Status
+    SELECT ID As Details,StartTime,EndTime,EventType,Username,Name,Emails,Status
     FROM PivotSubscriptions.EventLog 
     ORDER BY ID DESC
 }
