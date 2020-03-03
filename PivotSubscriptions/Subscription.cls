@@ -29,6 +29,8 @@ Method Unsubscribe(pEmail) As %Status
 {
     Set tSC=$$$OK
 
+    Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("unsubscribe",..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,pEmail,..Name,.tEvent)
+
     Set tEmailList=$LFS(..Emails,",")
 
     If $LL(tEmailList)=1 {
@@ -48,6 +50,8 @@ Method Unsubscribe(pEmail) As %Status
 
     Set ..Emails=$LTS(tEmailList,",")
     Set tSC=..%Save()
+
+    Do tEvent.UpdateStatus(tSC)
 
     Quit tSC
 }
