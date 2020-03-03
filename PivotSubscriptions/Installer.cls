@@ -18,10 +18,13 @@ ClassMethod RunInstaller(pRootDir)
 	Set tItem.title="Pivot Subscriptions"
 	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/PivotSubscriptions_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {style:'display: none;'},footer: {text:'$owner',style:'display: none;'}}"
 	Set tSC=tItem.%Save()
-	
-	If $$$ISERR(tSC) Quit
+	If $$$ISERR(tSC) Quit tSC
 	
 	Set tSC=##class(PivotSubscriptions.Task).ConfigureTask()
+	If $$$ISERR(tSC) Quit tSC
+
+	Set tSC=##class(PivotSubscriptions.Installer).ConfigureUnsubscribeWebApp()
+	If $$$ISERR(tSC) Quit tSC
 	
 	Quit tSC
 }
@@ -47,6 +50,31 @@ ClassMethod ImportImage(pDir) As %Status
 		Do tLocalFile.Close()
 	}
 	
+	Quit tSC
+}
+
+ClassMethod ConfigureUnsubscribeWebApp() As %Status
+{
+	Set tSC=$$$OK
+
+	Set tNamespace=$Namespace
+	ZN "%SYS"
+	
+	Try {
+		If '##class(Security.Applications).Exists("/api/pivotsubscriptionsunsubscribe") {
+			Set tWebApp=##class(Security.Applications).%New()
+			Set tWebApp.Name="/api/pivotsubscriptionsunsubscribe"
+			Set tWebApp.NameSpace=tNamespace
+			Set tWebApp.DispatchClass="PivotSubscriptions.UI.Unsubscribe"
+			Set tWebApp.AutheEnabled=64
+			Set tSC=tWebApp.%Save()
+		}
+	} Catch ex {
+		Set tSC=ex.AsStatus()
+	}
+
+	ZN tNamespace
+
 	Quit tSC
 }
 
