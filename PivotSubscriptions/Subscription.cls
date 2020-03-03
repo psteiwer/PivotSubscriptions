@@ -36,7 +36,9 @@ Method Unsubscribe(pEmail) As %Status
     If $LL(tEmailList)=1 {
         If ..Emails=pEmail {
             // This is the only Email for the subscription, delete subscription
+            Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",,..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,..Emails,..Name,.tDeleteEvent)
             Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(..%Id())
+            Do tDeleteEvent.UpdateStatus(tSC)
             Do tEvent.UpdateStatus(tSC)
             Return tSC
         }
