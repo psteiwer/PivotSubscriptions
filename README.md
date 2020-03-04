@@ -28,6 +28,7 @@ These additional permissions include:
 1) The Database Resource for the Database that contains the PivotSubscriptions Code 
 2) The Database Resource for the Database that contains the PivotSubscriptions Data
 3) The Database Resource for the NameSpace's Default Globals Database where PivotSubscriptions is installed
+
 Depending on your security settings and mapping configuration, this may be between 0 and 3 resources that are needed.
 
 ### Optional: Custom Action
