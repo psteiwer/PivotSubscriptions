@@ -1,7 +1,7 @@
 Class PivotSubscriptions.Installer
 {
 
-ClassMethod RunInstaller(pRootDir)
+ClassMethod RunInstaller(pRootDir = "")
 {
 	Set tSC=$$$OK
 	
