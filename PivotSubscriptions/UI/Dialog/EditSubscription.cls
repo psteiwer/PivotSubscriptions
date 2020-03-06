@@ -34,6 +34,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <text id="SubscriptionId" value="0" hidden="true"/>
 <label id="Name" label="Subscription name: "/>
 <text id="SubscriptionName" size="40"/>
+<select id="Preset" label="Preset Schedules" displayList="Weekdays,Weekends,Twice Weekly,Three Times Weekly" valueList="0,1,2,3" onchange="zenPage.updateSchedule();"/>
 <multiSelectSet id="DayOfWeek" label="Day(s) Of Week" layout="horizontal" displayList="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" valueList="0,1,2,3,4,5,6"/>
 <hgroup>
 	<select id="Hour" label="Hour" displayList="00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23" valueList="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"/>
@@ -108,6 +109,19 @@ Method %OnAfterCreatePage() As %Status
 		Do tEmailList.options.Insert(tOption)
 		Do ..%AddComponent(tOption)
 	}
+
+	// Populate Preset Selection Dropdown
+	Set tPreset=..%GetComponentById("Preset")
+	Set tDayOfWeek=..%GetComponentById("DayOfWeek")
+	If tDayOfWeek.value="1,2,3,4,5" {
+		Set tPreset.value=0
+	} ElseIf tDayOfWeek.value="0,6" {
+		Set tPreset.value=1
+	} ElseIf tDayOfWeek.value="2,4" {
+		Set tPreset.value=2
+	} ElseIf tDayOfWeek.value="1,3,5" {
+		Set tPreset.value=3
+	}	
 
 	Quit $$$OK
 }
@@ -287,6 +301,30 @@ Method GetCustomFilter(pEmail) As %String [ ZenMethod ]
 	Set tFilter=..CustomFilters.GetAt(pEmail)
 	
 	Quit tFilter
+}
+
+ClientMethod updateSchedule() [ Language = javascript ]
+{
+	var schedule=zen('Preset');
+	var dayofweek=zen('DayOfWeek');
+
+	switch(parseInt(schedule.value)) {
+		case 0:
+			dayofweek.setProperty("value","1,2,3,4,5")
+			break;
+		case 1:
+			dayofweek.setProperty("value","0,6")
+			break;
+		case 2:
+			dayofweek.setProperty("value","2,4")
+			break;
+		case 3:
+			dayofweek.setProperty("value","1,3,5")
+			break;
+		default:
+			break;
+	}
+	dayofweek.updateValue();
 }
 
 ClientMethod customFilter() [ Language = javascript ]
