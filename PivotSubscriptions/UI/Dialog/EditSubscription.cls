@@ -110,6 +110,19 @@ Method %OnAfterCreatePage() As %Status
 		Do ..%AddComponent(tOption)
 	}
 
+	// Populate Preset Selection Dropdown
+	Set tPreset=..%GetComponentById("Preset")
+	Set tDayOfWeek=..%GetComponentById("DayOfWeek")
+	If tDayOfWeek.value="1,2,3,4,5" {
+		Set tPreset.value=0
+	} ElseIf tDayOfWeek.value="0,6" {
+		Set tPreset.value=1
+	} ElseIf tDayOfWeek.value="2,4" {
+		Set tPreset.value=2
+	} ElseIf tDayOfWeek.value="1,3,5" {
+		Set tPreset.value=3
+	}	
+
 	Quit $$$OK
 }
 
