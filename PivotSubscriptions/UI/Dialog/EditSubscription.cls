@@ -307,8 +307,6 @@ ClientMethod updateSchedule() [ Language = javascript ]
 {
 	var schedule=zen('Preset');
 	var dayofweek=zen('DayOfWeek');
-	console.log(dayofweek);
-	console.log(schedule.value);
 
 	switch(parseInt(schedule.value)) {
 		case 0:
@@ -324,7 +322,6 @@ ClientMethod updateSchedule() [ Language = javascript ]
 			dayofweek.setProperty("value","1,3,5")
 			break;
 		default:
-			console.log("default");
 			break;
 	}
 	dayofweek.updateValue();
