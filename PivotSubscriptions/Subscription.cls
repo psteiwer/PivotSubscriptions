@@ -25,6 +25,8 @@ Property CustomFilters As array Of %String(MAXLEN = "");
 
 Property CustomEmailText As %String(MAXLEN = "");
 
+Property OneTime As %Boolean [ InitialExpression = 0 ];
+
 Method Unsubscribe(pEmail) As %Status
 {
     Set tSC=$$$OK
@@ -101,6 +103,9 @@ Storage Default
 </Value>
 <Value name="11">
 <Value>CustomEmailText</Value>
+</Value>
+<Value name="12">
+<Value>OneTime</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>
