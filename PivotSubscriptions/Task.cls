@@ -16,9 +16,9 @@ Method OnTask() As %Status
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
 		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"",RunOnce FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
 	} Else {
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"",RunOnce FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
 	}
 	
 	// Loop through Subscription results and send emails.
@@ -31,8 +31,15 @@ Method OnTask() As %Status
         Set tHour=tRS.%Get("Hour")
         Set tMinute=tRS.%Get("Minute")
         Set tName=tRS.%Get("Name")
+        Set tRunOnce=tRS.%Get("RunOnce")
 		
 		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tID,0,tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute,tName)
+	
+		If tRunOnce {
+			Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",tID,$username,tPivot,tDayOfWeek,tHour,tMinute,tFormat,tEmails,tName,.tDeleteEvent)
+            Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(tID)
+            Do tDeleteEvent.UpdateStatus(tSC)
+		}
 	}
 	
 	Quit tSC
