@@ -36,7 +36,7 @@ Method OnTask() As %Status
 		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tID,0,tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute,tName)
 	
 		If tRunOnce {
-			Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",tID,$username,tPivot,tDayOfWeek,tHour,tMinute,tFormat,tEmails,tName,.tDeleteEvent)
+			Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",tID,$username,tPivot,tDayOfWeek,tHour,tMinute,tFormat,tEmails,tName,tRunOnce,.tDeleteEvent)
             Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(tID)
             Do tDeleteEvent.UpdateStatus(tSC)
 		}
@@ -76,7 +76,7 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 	For tCount=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",tCount)
 
-		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,tSubscription.RunOnce,.pEvent)
 		If $$$ISERR(tSC) Quit tSC
 
 		Try {
