@@ -16,7 +16,7 @@ ClassMethod Unsubscribe(pSubscriptionId, pEmail, pGUID) As %Status
     Set tResult={}
     Do tResult.%Set("Status",$$$ERROR($$$GeneralError,"Invalid Request"))
 
-    If ##class(PivotSubscriptions.Utils).CheckUnsubscribe(pSubscriptionId,pEmail,pGUID) {
+    If ##class(PivotSubscriptions.Subscription).%ExistsId(pSubscriptionId)&&##class(PivotSubscriptions.Utils).CheckUnsubscribe(pSubscriptionId,pEmail,pGUID) {
         Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pSubscriptionId)
         Set tSC=tSubscription.Unsubscribe(pEmail)
         If $$$ISERR(tSC) {

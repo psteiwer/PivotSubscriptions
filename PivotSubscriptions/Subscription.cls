@@ -38,7 +38,7 @@ Method Unsubscribe(pEmail) As %Status
     If $LL(tEmailList)=1 {
         If ..Emails=pEmail {
             // This is the only Email for the subscription, delete subscription
-            Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",,..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,..Emails,..Name,..RunOnce,.tDeleteEvent)
+            Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,..Emails,..Name,..RunOnce,.tDeleteEvent)
             Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(..%Id())
             Do tDeleteEvent.UpdateStatus(tSC)
             Do tEvent.UpdateStatus(tSC)
@@ -47,7 +47,9 @@ Method Unsubscribe(pEmail) As %Status
     }
 
     Set tPosition=$Listfind(tEmailList,pEmail)
-    If tPosition=1 {
+    If tPosition=0 {
+        Set tSC=$$$ERROR($$$GeneralError,"Not subscribed")
+    } ElseIf tPosition=1 {
         Set tEmailList=$List(tEmailList,2,*)
     } ElseIf tPosition=$LL(tEmailList) {
         Set tEmailList=$List(tEmailList,1,*-1)    
@@ -55,8 +57,10 @@ Method Unsubscribe(pEmail) As %Status
         Set tEmailList=$List(tEmailList,1,tPosition-1)_$List(tEmailList,tPosition+1,*)
     }
 
-    Set ..Emails=$LTS(tEmailList,",")
-    Set tSC=..%Save()
+    If tPosition'=0 {
+        Set ..Emails=$LTS(tEmailList,",")
+        Set tSC=..%Save()
+    }
 
     Do tEvent.UpdateStatus(tSC)
 
