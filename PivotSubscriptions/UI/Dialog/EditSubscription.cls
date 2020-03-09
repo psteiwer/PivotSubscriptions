@@ -34,6 +34,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <text id="SubscriptionId" value="0" hidden="true"/>
 <label id="Name" label="Subscription name: "/>
 <text id="SubscriptionName" size="40"/>
+<radioSet id="RunOnce" label="Run Once?" displayList="No,Yes" valueList="0,1" value="0"/>
 <select id="Preset" label="Preset Schedules" displayList="Weekdays,Weekends,Twice Weekly,Three Times Weekly" valueList="0,1,2,3" onchange="zenPage.updateSchedule();"/>
 <multiSelectSet id="DayOfWeek" label="Day(s) Of Week" layout="horizontal" displayList="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" valueList="0,1,2,3,4,5,6"/>
 <hgroup>
@@ -79,6 +80,7 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("Emails").value=tSubscription.Emails
 		Set ..%GetComponentById("SubscriptionName").value=tSubscription.Name
 		Set ..%GetComponentById("CustomEmailText").value=tSubscription.CustomEmailText
+		Set ..%GetComponentById("RunOnce").value=tSubscription.RunOnce
 
 		// Populate CustomFilters
 		Set tKey=""
@@ -140,8 +142,9 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 		var name=zen('SubscriptionName').getValue();
 		var pivot=this.pivotName;
 		var emailtext=zen('CustomEmailText').getValue();
+		var runonce=zen('RunOnce').getValue();
 		
-		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name,emailtext);
+		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name,emailtext,runonce);
 
 		if (status!=1) {
 			alert("Error during save, see Event Log for more details.");
@@ -159,7 +162,7 @@ ClientMethod getDialogValue() [ Language = javascript ]
 	return '';
 }
 
-Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName, pEmailText) As %Status [ ZenMethod ]
+Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEmails, pFormat, pName, pEmailText, pRunOnce) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
   
@@ -174,7 +177,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 		Set tEventType="create"
 	}
 	
-	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pSubscriptionId,$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,.tEvent)
+	Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pSubscriptionId,$username,tSubscription.Pivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tSubscription.Emails,tSubscription.Name,tSubscription.RunOnce,.tEvent)
 	
 	Set tSubscription.DayOfWeek=pDayOfWeek
 	Set tSubscription.Hour=pHour
@@ -183,6 +186,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSubscription.Emails=pEmails
 	Set tSubscription.Name=pName
 	Set tSubscription.CustomEmailText=pEmailText
+	Set tSubscription.RunOnce=pRunOnce
 
 	// Get Custom Filter info
 	Set tKey=""
@@ -196,7 +200,7 @@ Method EditSubscription(pSubscriptionId, pPivot, pDayOfWeek, pHour, pMinute, pEm
 	Set tSC=tSubscription.%Save()
 	Do tEvent.UpdateStatus(tSC)
 	If tSC {
-		Do tEvent.UpdateEvent(pDayOfWeek,pHour,pMinute,pFormat,pEmails,pName)
+		Do tEvent.UpdateEvent(pDayOfWeek,pHour,pMinute,pFormat,pEmails,pName,pRunOnce)
 	}
 
 	Quit tSC

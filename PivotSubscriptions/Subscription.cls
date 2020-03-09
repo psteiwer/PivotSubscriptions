@@ -25,18 +25,20 @@ Property CustomFilters As array Of %String(MAXLEN = "");
 
 Property CustomEmailText As %String(MAXLEN = "");
 
+Property RunOnce As %Boolean [ InitialExpression = 0 ];
+
 Method Unsubscribe(pEmail) As %Status
 {
     Set tSC=$$$OK
 
-    Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("unsubscribe",..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,pEmail,..Name,.tEvent)
+    Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("unsubscribe",..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,pEmail,..Name,..RunOnce,.tEvent)
 
     Set tEmailList=$LFS(..Emails,",")
 
     If $LL(tEmailList)=1 {
         If ..Emails=pEmail {
             // This is the only Email for the subscription, delete subscription
-            Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",,..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,..Emails,..Name,.tDeleteEvent)
+            Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",,..%Id(),$username,..Pivot,..DayOfWeek,..Hour,..Minute,..Format,..Emails,..Name,..RunOnce,.tDeleteEvent)
             Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(..%Id())
             Do tDeleteEvent.UpdateStatus(tSC)
             Do tEvent.UpdateStatus(tSC)
@@ -101,6 +103,9 @@ Storage Default
 </Value>
 <Value name="11">
 <Value>CustomEmailText</Value>
+</Value>
+<Value name="12">
+<Value>RunOnce</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.SubD</DataLocation>
