@@ -5,10 +5,14 @@ XData LocalInstall [ XMLNamespace = INSTALLER ]
 {
 <Manifest>
 	<Namespace Name="${NAMESPACE}" Create="no" Ensemble="0">
+		<Role
+			Name="PivotSubscriptionsUnsubscribe"
+		/>
 		<CSPApplication
 			Url="/api/pivotsubscriptionsunsubscribe"
 			Directory="${CSPDIR}" 
 			DispatchClass="PivotSubscriptions.UI.Unsubscribe"
+			Grant="PivotSubscriptionsUnsubscribe"
 			AuthenticationMethods="64"
 		/>
 		<Import File="${APPPATH}/PivotSubscriptions/" Flags="ck" Recurse="1"/>
@@ -18,6 +22,14 @@ XData LocalInstall [ XMLNamespace = INSTALLER ]
 		<Invoke Class="PivotSubscriptions.Installer" Method="CreateBookCover" CheckStatus="1">
 		</Invoke>
 		<Invoke Class="PivotSubscriptions.Task" Method="ConfigureTask" CheckStatus="1">
+		</Invoke>
+		<Invoke Class="%SQL.Manager.API" Method="SaveObjPriv">
+			<Arg Value="s"/>
+			<Arg Value="1"/>
+			<Arg Value="PivotSubscriptions.EventLog"/>
+			<Arg Value="PivotSubscriptionsUnsubscribe"/>
+			<Arg Value="0"/>
+			<Arg Value="-1"/>
 		</Invoke>
 	</Namespace>
 </Manifest>
