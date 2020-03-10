@@ -16,8 +16,8 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <tablePane id="tablePane"
     cellSpacing="2"
 	fixedHeaders="false"
-	queryClass="PivotSubscriptions.EventLog"
-	queryName="GetEventsForUI"
+	tableName="PivotSubscriptions.EventLog"
+	orderByClause="ID DESC"
 	useSnapshot="true"
 	showQuery="false"
 	showZebra="true"
@@ -25,7 +25,14 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	pageSize="50"
 	maxRows="1000"
 	>
-	<column colName="Details" onclick="zenPage.viewDetails(#(%query.Details)#)" linkCaption="Details" link="#"/>
+	<column colName="ID" header="Details" onclick="zenPage.viewDetails(#(%query.ID)#)" linkCaption="Details" link="#"/>
+	<column colName="StartTime" filterType="text" filterOp="UP["/>
+	<column colName="EndTime" filterType="text" filterOp="UP["/>
+	<column colName="EventType" filterType="text" filterOp="UP["/>
+	<column colName="UserName" filterType="text" filterOp="UP["/>
+	<column colName="Name" filterType="text" filterOp="UP["/>
+	<column colName="Emails" filterType="text" filterOp="UP["/>
+	<column colName="Status" filterType="text" filterOp="UP["/>
 </tablePane>
 </vgroup>
 </hgroup>
