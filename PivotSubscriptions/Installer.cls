@@ -8,13 +8,15 @@ XData LocalInstall [ XMLNamespace = INSTALLER ]
 		<Role
 			Name="PivotSubscriptionsUnsubscribe"
 		/>
-		<CSPApplication
+		<!--CSPApplication
 			Url="/api/pivotsubscriptionsunsubscribe"
 			Directory="${CSPDIR}" 
 			DispatchClass="PivotSubscriptions.UI.Unsubscribe"
 			Grant="PivotSubscriptionsUnsubscribe"
 			AuthenticationMethods="64"
-		/>
+		/-->
+		<Invoke Class="PivotSubscriptions.Installer" Method="ConfigureUnsubscribeWebApp" CheckStatus="1">
+		</Invoke>
 		<Import File="${APPPATH}/PivotSubscriptions/" Flags="ck" Recurse="1"/>
 		<Invoke Class="PivotSubscriptions.Installer" Method="ImportImage" CheckStatus="1">
 			<Arg Value="${APPPATH}/Assets/PivotSubscriptions_BookCover.png"/>
