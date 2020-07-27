@@ -16,9 +16,9 @@ Method OnTask() As %Status
 		// Ignore minute for testing purposes
 		// This will allow the task to be run on demand and send emails immediately
 		// Leaving DayOfWeek and Hour so the scheduled task does not spam emails
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"",RunOnce FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=?",tDayOfWeek,tHour)
 	} Else {
-		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"" FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
+		Set tRS=##class(%SQL.Statement).%ExecDirect(,"SELECT ID,Emails,Name,Pivot,Format,DayOfWeek,""Hour"",""Minute"",RunOnce FROM PivotSubscriptions.Subscription WHERE DayOfWeek[? AND ""Hour""=? AND ""Minute""=?",tDayOfWeek,tHour,tMinute)
 	}
 	
 	// Loop through Subscription results and send emails.
@@ -31,14 +31,21 @@ Method OnTask() As %Status
         Set tHour=tRS.%Get("Hour")
         Set tMinute=tRS.%Get("Minute")
         Set tName=tRS.%Get("Name")
+        Set tRunOnce=tRS.%Get("RunOnce")
 		
-		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tID,tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute,tName)
+		Set tSC = ##class(PivotSubscriptions.Task).SendSubscription(tID,0,tPivot,tEmails,tFormat,tDayOfWeek,tHour,tMinute,tName)
+	
+		If tRunOnce {
+			Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("delete",tID,$username,tPivot,tDayOfWeek,tHour,tMinute,tFormat,tEmails,tName,tRunOnce,.tDeleteEvent)
+            Set tSC=##class(PivotSubscriptions.Subscription).%DeleteId(tID)
+            Do tDeleteEvent.UpdateStatus(tSC)
+		}
 	}
 	
 	Quit tSC
 }
 
-ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat As %String, pDayOfWeek, pHour, pMinute, pName) As %Status
+ClassMethod SendSubscription(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails As %String, pFormat As %String, pDayOfWeek, pHour, pMinute, pName) As %Status
 {
 	Set tSC=$$$OK
 	
@@ -47,7 +54,7 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 	}
 	
 	Try {
-		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pID,pPivot,pEmails,pFormat,pName)
+		Set tSC=##class(PivotSubscriptions.Task).SendEmail(pID,pSendNow,pPivot,pEmails,pFormat,pName)
 	} Catch ex {
 		Set tSC=ex.AsStatus()
 	}
@@ -55,10 +62,12 @@ ClassMethod SendSubscription(pID, pPivot As %String, pEmails As %String, pFormat
 	Quit tSC
 }
 
-ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %String, pName As %String) As %Status
+ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails As %String, pFormat As %String, pName As %String) As %Status
 {
 	Set tSC=$$$OK
 	Set tFilename=""
+
+	Set tEventType=$Select(pSendNow:"sendNow",1:"sendSubscription")
 	
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
@@ -67,7 +76,7 @@ ClassMethod SendEmail(pID, pPivot As %String, pEmails As %String, pFormat As %St
 	For tCount=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",tCount)
 
-		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent("sendSubscription",pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,.pEvent)
+		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,tSubscription.RunOnce,.pEvent)
 		If $$$ISERR(tSC) Quit tSC
 
 		Try {

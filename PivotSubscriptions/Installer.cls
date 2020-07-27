@@ -1,7 +1,7 @@
 Class PivotSubscriptions.Installer
 {
 
-ClassMethod RunInstaller(pRootDir)
+ClassMethod RunInstaller(pRootDir = "")
 {
 	Set tSC=$$$OK
 	
@@ -16,7 +16,7 @@ ClassMethod RunInstaller(pRootDir)
 	Set tPage="PivotSubscriptions.UI.SubscriptionManager.zen"
 	Set tItem.href=$system.CSP.GetPortalApp($namespace,tPage)_tPage
 	Set tItem.title="Pivot Subscriptions"
-	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/PivotSubscriptions_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {style:'display: none;'},footer: {text:'$owner',style:'display: none;'}}"
+	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/PivotSubscriptions_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {text:'"_##class(PivotSubscriptions.Utils).GetVersion()_"',style:'font-size:9px;top:179px;'},footer: {text:'$owner',style:'display: none;'}}"
 	Set tSC=tItem.%Save()
 	If $$$ISERR(tSC) Quit tSC
 	

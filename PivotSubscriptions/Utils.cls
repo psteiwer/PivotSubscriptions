@@ -3,7 +3,7 @@ Class PivotSubscriptions.Utils
 
 ClassMethod GetVersion() As %String
 {
-	Quit "v1.4.1"
+	Quit "v1.5.0"
 }
 
 /// Utility method for saving and updating global variables
@@ -184,7 +184,7 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String) As %Status
 {
 	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
-	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",pSubscription.%Id(),$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,.pEvent)
+	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",pSubscription.%Id(),$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,pSubscription.RunOnce,.pEvent)
 
 	If $$$ISERR(tLog) Quit tLog
 	

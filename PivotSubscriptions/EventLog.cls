@@ -3,7 +3,7 @@ Class PivotSubscriptions.EventLog Extends %Persistent
 {
 
 /// Event Type covers: create, update, delete, sendSubscription, and tableError
-Property EventType As %String(VALUELIST = ",create,update,delete,sendSubscription,tableError,unsubscribe");
+Property EventType As %String(VALUELIST = ",create,update,delete,sendSubscription,sendNow,tableError,unsubscribe");
 
 Property StartTime As %TimeStamp [ InitialExpression = {$zdt($h, 3, 1)} ];
 
@@ -31,8 +31,10 @@ Property Subscription As PivotSubscriptions.Subscription;
 
 Property GUID As %String [ InitialExpression = {$System.Util.CreateGUID()} ];
 
+Property RunOnce As %Boolean;
+
 /// Takes in info about an Alert Task and logs the information to the TaskLog
-ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, ByRef pEvent) As %Status
+ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, pRunOnce, ByRef pEvent) As %Status
 {
 	Set tSC=$$$OK
 	
@@ -42,6 +44,7 @@ ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour
 	Set tEventLog.UserName=pUser
 	Set tEventLog.Pivot=pPivot
 	Set tEventLog.Name=pName
+	Set tEventLog.RunOnce=pRunOnce
 
 	Set tEventLog.DayOfWeek=pDayOfWeek
 	Set tEventLog.Hour=pHour
@@ -67,7 +70,7 @@ Method UpdateStatus(pStatus) As %Status
 	Quit tSC
 }
 
-Method UpdateEvent(pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Status
+Method UpdateEvent(pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, pRunOnce) As %Status
 {
 	Set tSC=$$$OK
 
@@ -77,6 +80,7 @@ Method UpdateEvent(pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName) As %Stat
 	Set ..Format=pFormat
 	Set ..Emails=pEmails
 	Set ..Name=pName
+	Set ..RunOnce=pRunOnce
 
 	Set tSC=..%Save()
 
@@ -152,6 +156,9 @@ Storage Default
 </Value>
 <Value name="16">
 <Value>GUID</Value>
+</Value>
+<Value name="17">
+<Value>RunOnce</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.EventLogD</DataLocation>
