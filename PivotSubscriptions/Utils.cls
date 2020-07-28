@@ -181,7 +181,7 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(pMsg)
 }
 
-ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String) As %Status
+ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String, pCustomFilter As %String = "") As %Status
 {
 	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",pSubscription.%Id(),$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,pSubscription.RunOnce,.pEvent)
@@ -210,6 +210,10 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
 	Do tMsg.TextData.WriteLine("<br/><br/>MDX Executed:")
 	Do tMsg.TextData.WriteLine(pMDX)
+	If pCustomFilter'="" {
+		Do tMsg.TextData.WriteLine("<br/><br/>Custom Filter:")
+		Do tMsg.TextData.WriteLine(pCustomFilter)
+	}
 	Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(tMsg)
 
 	// Set recipient of email
