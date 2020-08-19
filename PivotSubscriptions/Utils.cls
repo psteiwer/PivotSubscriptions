@@ -169,6 +169,15 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 			} ElseIf (($Find(tLine,"<x"))||($Find(tLine,"</x"))||($Find(tLine,"<body>"))||($Find(tLine,"<html>"))||(tLine="</html>")) {
 				Continue
 			} Else {
+				// If 'Short Date' exists, the time value has been changed to excel format
+				If ($Find(tLine,"'Short Date'")) {
+					Set tTimeStartPos=$Find(tLine,"'Short Date'")+2
+					Set tTimeEndPos=$Find(tLine,"<",tTimeStartPos)-2
+					Set tTime=$E(tLine,tTimeStartPos,tTimeEndPos)
+					Set tTime=tTime+$ZDateH("12/30/1899")
+					// Insert the new date display, using the default DeepSee date display option
+					Set tLine=$E(tLine,1,tTimeStartPos-1)_$ZDate(tTime,6)_$E(tLine,tTimeEndPos+1,*)
+				}
 				Do pMsg.TextData.WriteLine(tLine)
 			}
 		}
