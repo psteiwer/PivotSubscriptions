@@ -1,6 +1,55 @@
 Class PivotSubscriptions.Installer
 {
 
+XData LocalInstall [ XMLNamespace = INSTALLER ]
+{
+<Manifest>
+	<Namespace Name="${NAMESPACE}" Create="no" Ensemble="0">
+		<Role
+			Name="PivotSubscriptionsUnsubscribe"
+		/>
+		<!--CSPApplication
+			Url="/api/pivotsubscriptionsunsubscribe"
+			Directory="${CSPDIR}" 
+			DispatchClass="PivotSubscriptions.UI.Unsubscribe"
+			Grant="PivotSubscriptionsUnsubscribe"
+			AuthenticationMethods="64"
+		/-->
+		<Invoke Class="PivotSubscriptions.Installer" Method="ConfigureUnsubscribeWebApp" CheckStatus="1">
+		</Invoke>
+		<Import File="${APPPATH}/PivotSubscriptions/" Flags="ck" Recurse="1"/>
+		<Invoke Class="PivotSubscriptions.Installer" Method="ImportImage" CheckStatus="1">
+			<Arg Value="${APPPATH}/Assets/PivotSubscriptions_BookCover.png"/>
+		</Invoke>
+		<Invoke Class="PivotSubscriptions.Installer" Method="CreateBookCover" CheckStatus="1">
+		</Invoke>
+		<Invoke Class="PivotSubscriptions.Task" Method="ConfigureTask" CheckStatus="1">
+		</Invoke>
+		<Invoke Class="%SQL.Manager.API" Method="SaveObjPriv">
+			<Arg Value="s"/>
+			<Arg Value="1"/>
+			<Arg Value="PivotSubscriptions.EventLog"/>
+			<Arg Value="PivotSubscriptionsUnsubscribe"/>
+			<Arg Value="0"/>
+			<Arg Value="-1"/>
+		</Invoke>
+	</Namespace>
+</Manifest>
+}
+
+ClassMethod setup(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Installer.Installer, pLogger As %Installer.AbstractLogger) As %Status [ CodeMode = objectgenerator, Internal ]
+{
+	#; Let XGL document generate code for this method.
+	Quit ##class(%Installer.Manifest).%Generate(%compiledclass,%code,"LocalInstall")
+}
+
+ClassMethod RunLocalInstall(pRootDir, pNamespace = {$Namespace}) As %Status
+{
+	Set tVars("APPPATH")=pRootDir
+	Set tVars("NAMESPACE")=pNamespace
+	Quit ..setup(.tVars,3)
+}
+
 ClassMethod RunInstaller(pRootDir = "")
 {
 	Set tSC=$$$OK
@@ -11,13 +60,7 @@ ClassMethod RunInstaller(pRootDir = "")
 		If $$$ISERR(tSC) Quit
 	}
 	
-	Set tItem=##class(%DeepSee.UserLibrary.Link).%New()
-	Set tItem.fullName="Pivot Subscriptions"
-	Set tPage="PivotSubscriptions.UI.SubscriptionManager.zen"
-	Set tItem.href=$system.CSP.GetPortalApp($namespace,tPage)_tPage
-	Set tItem.title="Pivot Subscriptions"
-	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/PivotSubscriptions_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {text:'"_##class(PivotSubscriptions.Utils).GetVersion()_"',style:'font-size:9px;top:179px;'},footer: {text:'$owner',style:'display: none;'}}"
-	Set tSC=tItem.%Save()
+	Set tSC=##class(PivotSubscriptions.Installer).CreateBookCover()
 	If $$$ISERR(tSC) Quit tSC
 	
 	Set tSC=##class(PivotSubscriptions.Task).ConfigureTask()
@@ -25,6 +68,19 @@ ClassMethod RunInstaller(pRootDir = "")
 
 	Set tSC=##class(PivotSubscriptions.Installer).ConfigureUnsubscribeWebApp()
 	If $$$ISERR(tSC) Quit tSC
+	
+	Quit tSC
+}
+
+ClassMethod CreateBookCover() As %Status
+{
+	Set tItem=##class(%DeepSee.UserLibrary.Link).%New()
+	Set tItem.fullName="Pivot Subscriptions"
+	Set tPage="PivotSubscriptions.UI.SubscriptionManager.zen"
+	Set tItem.href=$system.CSP.GetPortalApp($namespace,tPage)_tPage
+	Set tItem.title="Pivot Subscriptions"
+	Set tItem.bookCover="{background: {style:'background:white;',src:'covers/PivotSubscriptions_Cover.png'},header: {text:'$type',style:'display: none;'},title: {text:'$title',style:'display: none;'},image: {style:'display: none;',src:'deepsee/ds2_globe_44.png',imageStyle:'width:64px;height:64px;'},subtitle: {text:'"_##class(PivotSubscriptions.Utils).GetVersion()_"',style:'font-size:9px;top:179px;'},footer: {text:'$owner',style:'display: none;'}}"
+	Set tSC=tItem.%Save()
 	
 	Quit tSC
 }

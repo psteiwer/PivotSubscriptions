@@ -51,7 +51,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 		<image src="deepsee/ds2_magnify_18.png" width="16" height="16" title="Add custom filter" onclick="zenPage.customFilter();"/>
 	</vgroup>
 </hgroup>
-<expando caption="Custom Email" expanded="false">
+<expando id="CustomEmailExpando" caption="Custom Email" expanded="false">
 	<textarea id="CustomEmailText" label="Custom Email Text. Included before Pivot Table in Email." cols="50" rows="5"/>
 </expando>
 </pane>
@@ -89,6 +89,12 @@ Method %OnAfterCreatePage() As %Status
 			// TODO: Check return status
 			Do ..CustomFilters.SetAt(tVal,tKey)
 			Set tVal=tSubscription.CustomFilters.GetNext(.tKey)
+		}
+
+		// Expand Custom Email Expando if CustomEmailText is populated
+		If tSubscription.CustomEmailText'="" {
+			Set tCustomEmailExpando=..%GetComponentById("CustomEmailExpando")
+			Set tCustomEmailExpando.expanded=1
 		}
 	}
 
