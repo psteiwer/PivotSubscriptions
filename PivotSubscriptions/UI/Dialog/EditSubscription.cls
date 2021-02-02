@@ -38,8 +38,8 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <select id="Preset" label="Preset Schedules" displayList="Weekdays,Weekends,Twice Weekly,Three Times Weekly" valueList="0,1,2,3" onchange="zenPage.updateSchedule();"/>
 <multiSelectSet id="DayOfWeek" label="Day(s) Of Week" layout="horizontal" displayList="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday" valueList="0,1,2,3,4,5,6"/>
 <hgroup>
-	<select id="Hour" label="Hour" displayList="00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23" valueList="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"/>
-	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45"/>
+	<select id="Hour" label="Hour" displayList="00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23" valueList="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23" value="12"/>
+	<select id="Minute" label="Minute" displayList="00,15,30,45" valueList="0,15,30,45" value="0"/>
 </hgroup>
 <radioSet id="Format" label="Format" displayList="Excel,PDF" valueList="Excel,PDF" value="Excel"/>
 <textarea id="Emails" label="Email Addresses (Comma separated list)" cols="50" rows="2" onchange="zenPage.populateEmailList();"/>
