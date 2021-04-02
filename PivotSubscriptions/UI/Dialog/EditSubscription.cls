@@ -140,12 +140,32 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 {
 	try {
 		var subscriptionid=zen('SubscriptionId').getValue();
+		var name=zen('SubscriptionName').getValue();
+		if (name=="") {
+			alert($$$Text('Please enter a subscription name.'));
+			return false;
+		}
 		var dayofweek=zen('DayOfWeek').getValue();
+		if (dayofweek=="") {
+			alert($$$Text('Please select at least 1 day of week.'));
+			return false;
+		}
 		var hour=zen('Hour').getValue();
+		if (hour=="") {
+			alert($$$Text('Please select an hour.'));
+			return false;
+		}
 		var minute=zen('Minute').getValue();
+		if (minute=="") {
+			alert($$$Text('Please select a minute.'));
+			return false;
+		}
 		var format=zen('Format').getValue();
 		var emails=zen('Emails').getValue();
-		var name=zen('SubscriptionName').getValue();
+		if (emails=="") {
+			alert($$$Text('Please enter at least 1 email.'));
+			return false;
+		}
 		var pivot=this.pivotName;
 		var emailtext=zen('CustomEmailText').getValue();
 		var runonce=zen('RunOnce').getValue();
