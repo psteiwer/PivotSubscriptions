@@ -152,6 +152,12 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
+		// Include link to view in Analyzer
+		Set tSC=##class(PivotSubscriptions.Utils).GenerateLink(.tAnalyzerURL)
+		If $$$ISERR(tSC) Quit
+		Set tAnalyzerURL=tAnalyzerURL_$system.CSP.GetDefaultApp($namespace)_"/_DeepSee.UI.Analyzer.zen?PIVOT="_pSubscription.Pivot
+		Do pMsg.TextData.WriteLine("<a href='"_tAnalyzerURL_"'>Click Here</a> to view the pivot table in your browser.")
+
 		// Include Subscription's custom email text
 		If pSubscription.CustomEmailText'="" {
 			Do pMsg.TextData.WriteLine(pSubscription.CustomEmailText)
