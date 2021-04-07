@@ -222,7 +222,13 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	} ElseIf pReason="TooLarge" {
 		Do tMsg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
 	}
-	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
+	
+	// Generate Event Log Viewer URL
+	Set tSC=##class(PivotSubscriptions.Utils).GenerateLink(.tEventLogURL)
+	If $$$ISERR(tSC) Quit
+	Set tEventLogURL=tEventLogURL_$system.CSP.GetDefaultApp($namespace)_"/PivotSubscriptions.UI.EventLogViewer.zen"
+	
+	Do tMsg.TextData.WriteLine("<br>Please check the <a href='"_tEventLogURL_"'>Event Log Viewer</a>.")
 	Do tMsg.TextData.WriteLine("<br/><br/>MDX Executed:")
 	Do tMsg.TextData.WriteLine(pMDX)
 	If pCustomFilter'="" {
