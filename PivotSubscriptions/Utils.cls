@@ -7,7 +7,7 @@ ClassMethod GetVersion() As %String
 }
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage)
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly)
 {
 	Set ^PivotSubscriptions.Settings("AdminEmail")=pAdminEmail
 	Set ^PivotSubscriptions.Settings("Http")=pHttp
@@ -17,6 +17,7 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, 
 	Set ^PivotSubscriptions.Settings("NoDataMessage")=pNoDataMessage
 	Set ^PivotSubscriptions.Settings("CustomFooter")=pCustomFooter
 	Set ^PivotSubscriptions.Settings("CustomFooterMessage")=pCustomFooterMessage
+	Set ^PivotSubscriptions.Settings("ChangesOnly")=pChangesOnly
 	
 	Quit $$$OK
 }
@@ -198,10 +199,19 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 
 ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String, pCustomFilter As %String = "") As %Status
 {
+	Set tSC=$$$OK
+
 	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",pSubscription.%Id(),$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,pSubscription.RunOnce,.pEvent)
 
 	If $$$ISERR(tLog) Quit tLog
+
+	Set tSC=##class(PivotSubscriptions.Utils).LastSubscriptionStatus(.tLastStatus,pName,pEmail)
+	If $$$ISERR(tSC) Quit tSC
+	If ##class(PivotSubscriptions.Utils).GetSettings("ChangesOnly") && $$$ISERR(tLastStatus) {
+		Set tSC=pEvent.UpdateStatus($$$ERROR($$$GeneralError,"StatusNotChanged"))
+		Quit tSC
+	}
 	
 	// Generate email
 	Set tServer=##class(%Net.SMTP).%New()
@@ -255,6 +265,20 @@ ClassMethod ActionCommand(ByRef pContext As %ZEN.proxyObject) As %String
 	}
 
 	Quit tCommand
+}
+
+ClassMethod LastSubscriptionStatus(ByRef pLastStatus, pName, pEmail) As %Status
+{
+	Set tSC=$$$OK
+	Set pLastStatus=$$$OK
+
+	Set tSQL="SELECT TableError From PivotSubscriptions.EventLog WHERE Name=? AND Emails=? AND ((EventType='sendSubscription') OR (EventType='sendNow')) ORDER BY ID Desc"
+	Set tSQLRS=##class(%SQL.Statement).%ExecDirect(,tSQL,pName,pEmail)
+	Do tSQLRS.%Next()
+	Do tSQLRS.%Next()
+	Set pLastStatus=tSQLRS.TableError
+
+	Quit tSC
 }
 
 ClassMethod ExecuteForSubscription(pMDX, pCustomFilter = "", ByRef pHasResults = 0) As %Status

@@ -25,6 +25,8 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 			<label label="Custom Emails" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
 			<radioSet id="CustomFooter" label="Custom Footer" displayList="Yes,No" valueList="1,0" value="0"/>
 			<textarea id="CustomFooterMessage" label="Custom Footer Message" cols="50" rows="3" value="PivotSubcriptions for InterSystems IRIS Business Intelligence" />
+			<label label="Error Emails" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
+			<radioSet id="ChangesOnly" label="New Errors Only" displayList="Yes,No" valueList="1,0" value="0"/>
 	</vgroup>
 </hgroup>
 <hgroup>
@@ -79,6 +81,9 @@ Method %OnAfterCreatePage() As %Status
 	If $G(^PivotSubscriptions.Settings("CustomFooterMessage"))'="" {
 		Set ..%GetComponentById("CustomFooterMessage").value=^PivotSubscriptions.Settings("CustomFooterMessage")
 	}
+	If $G(^PivotSubscriptions.Settings("ChangesOnly"))'="" {
+		Set ..%GetComponentById("ChangesOnly").value=^PivotSubscriptions.Settings("ChangesOnly")
+	}
 	
 	Quit $$$OK
 }
@@ -94,19 +99,20 @@ ClientMethod ButtonClick() [ Language = javascript ]
 		var nodatamessage=zen('NoDataMessage').getValue();
 		var customfooter=zen('CustomFooter').getValue();
 		var customfootermessage=zen('CustomFooterMessage').getValue();
+		var changesonly=zen('ChangesOnly').getValue();
 		
-		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage);
+		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage,changesonly);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
 }
 
-Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage) As %Status [ ZenMethod ]
+Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage)
+	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly)
 	
 	Quit tSC
 }

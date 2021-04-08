@@ -126,7 +126,9 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 				} ElseIf 'tableStatus {
 					// Check if both configuration settings for admin email is valid before sending error message
 					If validAdminEmail {
-						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"TooLarge",mdx,tCustomFilter)
+						Set tReason="TooLarge"
+						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
+						Set pEvent.TableError=$$$ERROR($$$GeneralError,tReason)
 					}
 				}
 				
@@ -138,7 +140,11 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg,tUnsubscribeList)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
-				Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"NoResults",mdx,tCustomFilter)
+				If validAdminEmail {
+					Set tReason="NoResults"
+					Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
+					Set pEvent.TableError=$$$ERROR($$$GeneralError,tReason)
+				}
 			}
 			
 			// Send email
