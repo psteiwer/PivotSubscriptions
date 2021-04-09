@@ -72,6 +72,8 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 	
+	Set tErrorTypes=##class(PivotSubscriptions.Utils).GetSettings("ErrorTypes")
+	
 	// Iterate through all subscribers and send emails to each individually
 	For tCount=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",tCount)
@@ -127,7 +129,7 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 					// Check if both configuration settings for admin email is valid before sending error message
 					If validAdminEmail {
 						Set tReason="TooLarge"
-						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
+						Do:tErrorTypes[1 ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
 						Set pEvent.TableError=$$$ERROR($$$GeneralError,tReason)
 					}
 				}
@@ -142,7 +144,7 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 
 				If validAdminEmail {
 					Set tReason="NoResults"
-					Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
+					Do:tErrorTypes[0 ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
 					Set pEvent.TableError=$$$ERROR($$$GeneralError,tReason)
 				}
 			}

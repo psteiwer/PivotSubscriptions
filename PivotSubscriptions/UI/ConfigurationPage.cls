@@ -27,6 +27,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 			<textarea id="CustomFooterMessage" label="Custom Footer Message" cols="50" rows="3" value="PivotSubcriptions for InterSystems IRIS Business Intelligence" />
 			<label label="Error Emails" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
 			<radioSet id="ChangesOnly" label="New Errors Only" displayList="Yes,No" valueList="1,0" value="0"/>
+			<multiSelectSet id="ErrorTypes" label="Optional Error Emails:" layout="horizontal" displayList="No Data,Too Large" valueList="0,1" value="0,1"/>
 	</vgroup>
 </hgroup>
 <hgroup>
@@ -84,6 +85,10 @@ Method %OnAfterCreatePage() As %Status
 	If $G(^PivotSubscriptions.Settings("ChangesOnly"))'="" {
 		Set ..%GetComponentById("ChangesOnly").value=^PivotSubscriptions.Settings("ChangesOnly")
 	}
+	If $G(^PivotSubscriptions.Settings("ErrorTypes"))'="" {
+		Set ..%GetComponentById("ErrorTypes").value=^PivotSubscriptions.Settings("ErrorTypes")
+	}
+	
 	
 	Quit $$$OK
 }
@@ -100,19 +105,20 @@ ClientMethod ButtonClick() [ Language = javascript ]
 		var customfooter=zen('CustomFooter').getValue();
 		var customfootermessage=zen('CustomFooterMessage').getValue();
 		var changesonly=zen('ChangesOnly').getValue();
+		var errortypes=zen('ErrorTypes').getValue();
 		
-		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage,changesonly);
+		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage,changesonly,errortypes);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
 }
 
-Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly) As %Status [ ZenMethod ]
+Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly)
+	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes)
 	
 	Quit tSC
 }
