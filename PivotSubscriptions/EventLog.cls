@@ -33,6 +33,8 @@ Property GUID As %String [ InitialExpression = {$System.Util.CreateGUID()} ];
 
 Property RunOnce As %Boolean;
 
+Property TableError As %Status [ InitialExpression = {$$$OK} ];
+
 /// Takes in info about an Alert Task and logs the information to the TaskLog
 ClassMethod CreateEvent(pType, pSubscriptionId, pUser, pPivot, pDayOfWeek, pHour, pMinute, pFormat, pEmails, pName, pRunOnce, ByRef pEvent) As %Status
 {
@@ -159,6 +161,9 @@ Storage Default
 </Value>
 <Value name="17">
 <Value>RunOnce</Value>
+</Value>
+<Value name="18">
+<Value>TableError</Value>
 </Value>
 </Data>
 <DataLocation>^PivotSubscriptions.EventLogD</DataLocation>

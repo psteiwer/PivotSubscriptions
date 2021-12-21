@@ -5,21 +5,21 @@ Parameter DEFAULTGLOBAL = "^PivotSubscriptions.Sub";
 
 Property CreatedBy As %String;
 
-Property Pivot As %String(MAXLEN = "");
+Property Pivot As %String(MAXLEN = "") [ Required ];
 
-Property DayOfWeek As %String;
+Property DayOfWeek As %String [ Required ];
 
-Property Hour As %Integer(MAXVAL = 23, MINVAL = 0);
+Property Hour As %Integer(MAXVAL = 23, MINVAL = 0) [ Required ];
 
-Property Minute As %Integer(VALUELIST = ",0,15,30,45");
+Property Minute As %Integer(VALUELIST = ",0,15,30,45") [ Required ];
 
 Property Format As %String(VALUELIST = ",Excel,PDF");
 
-Property Emails As %String(MAXLEN = "");
+Property Emails As %String(MAXLEN = "") [ Required ];
 
 Property Version As %String [ InitialExpression = {##class(PivotSubscriptions.Utils).GetVersion()} ];
 
-Property Name As %String(MAXLEN = 100);
+Property Name As %String(MAXLEN = 100) [ Required ];
 
 Property CustomFilters As array Of %String(MAXLEN = "");
 

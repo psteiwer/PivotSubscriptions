@@ -72,12 +72,14 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
 	
+	Set tErrorTypes=##class(PivotSubscriptions.Utils).GetSettings("ErrorTypes")
+	
 	// Iterate through all subscribers and send emails to each individually
 	For tCount=1:1:$l(pEmails,",") {
 		Set tEmail=$p(pEmails,",",tCount)
 
 		Set tSC=##class(PivotSubscriptions.EventLog).CreateEvent(tEventType,pID,$username,pPivot,tSubscription.DayOfWeek,tSubscription.Hour,tSubscription.Minute,tSubscription.Format,tEmail,pName,tSubscription.RunOnce,.pEvent)
-		If $$$ISERR(tSC) Quit tSC
+		If $$$ISERR(tSC) Quit
 
 		Try {
 			Set tHasResults=0
@@ -126,7 +128,9 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 				} ElseIf 'tableStatus {
 					// Check if both configuration settings for admin email is valid before sending error message
 					If validAdminEmail {
-						Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"TooLarge",mdx,tCustomFilter)
+						Set tReason="TooLarge"
+						Do:tErrorTypes[1 ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
+						Set pEvent.TableError=$$$ERROR($$$GeneralError,tReason)
 					}
 				}
 				
@@ -138,7 +142,11 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg,tUnsubscribeList)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 
-				Do ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,"NoResults",mdx,tCustomFilter)
+				If validAdminEmail {
+					Set tReason="NoResults"
+					Do:tErrorTypes[0 ##class(PivotSubscriptions.Utils).TableErrorMessage(tSubscription,tEmail,pName,tReason,mdx,tCustomFilter)
+					Set pEvent.TableError=$$$ERROR($$$GeneralError,tReason)
+				}
 			}
 			
 			// Send email

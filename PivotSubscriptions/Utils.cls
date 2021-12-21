@@ -3,11 +3,11 @@ Class PivotSubscriptions.Utils
 
 ClassMethod GetVersion() As %String
 {
-	Quit "v1.6.0"
+	Quit "v1.7.0"
 }
 
 /// Utility method for saving and updating global variables
-ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage)
+ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes)
 {
 	Set ^PivotSubscriptions.Settings("AdminEmail")=pAdminEmail
 	Set ^PivotSubscriptions.Settings("Http")=pHttp
@@ -17,6 +17,8 @@ ClassMethod ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, 
 	Set ^PivotSubscriptions.Settings("NoDataMessage")=pNoDataMessage
 	Set ^PivotSubscriptions.Settings("CustomFooter")=pCustomFooter
 	Set ^PivotSubscriptions.Settings("CustomFooterMessage")=pCustomFooterMessage
+	Set ^PivotSubscriptions.Settings("ChangesOnly")=pChangesOnly
+	Set ^PivotSubscriptions.Settings("ErrorTypes")=pErrorTypes
 	
 	Quit $$$OK
 }
@@ -152,6 +154,12 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
+		// Include link to view in Analyzer
+		Set tSC=##class(PivotSubscriptions.Utils).GenerateLink(.tAnalyzerURL)
+		If $$$ISERR(tSC) Quit
+		Set tAnalyzerURL=tAnalyzerURL_$system.CSP.GetDefaultApp($namespace)_"/_DeepSee.UI.Analyzer.zen?PIVOT="_pSubscription.Pivot
+		Do pMsg.TextData.WriteLine("<a href='"_tAnalyzerURL_"'>Click Here</a> to view the pivot table in your browser.")
+
 		// Include Subscription's custom email text
 		If pSubscription.CustomEmailText'="" {
 			Do pMsg.TextData.WriteLine(pSubscription.CustomEmailText)
@@ -192,10 +200,19 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 
 ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, pEmail As %String, pName As %String, pReason As %String, pMDX As %String, pCustomFilter As %String = "") As %Status
 {
+	Set tSC=$$$OK
+
 	Set tAdminEmail=##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
 	Set tLog=##class(PivotSubscriptions.EventLog).CreateEvent("tableError",pSubscription.%Id(),$username,pSubscription.Pivot,pSubscription.DayOfWeek,pSubscription.Hour,pSubscription.Minute,pSubscription.Format,tAdminEmail,pName,pSubscription.RunOnce,.pEvent)
 
 	If $$$ISERR(tLog) Quit tLog
+
+	Set tSC=##class(PivotSubscriptions.Utils).LastSubscriptionStatus(.tLastStatus,pName,pEmail)
+	If $$$ISERR(tSC) Quit tSC
+	If ##class(PivotSubscriptions.Utils).GetSettings("ChangesOnly") && $$$ISERR(tLastStatus) {
+		Set tSC=pEvent.UpdateStatus($$$ERROR($$$GeneralError,"StatusNotChanged"))
+		Quit tSC
+	}
 	
 	// Generate email
 	Set tServer=##class(%Net.SMTP).%New()
@@ -216,7 +233,13 @@ ClassMethod TableErrorMessage(pSubscription As PivotSubscriptions.Subscription, 
 	} ElseIf pReason="TooLarge" {
 		Do tMsg.TextData.WriteLine("The pivot table is too large to be embedded.<br>")
 	}
-	Do tMsg.TextData.WriteLine("<br>Please check the <i>Subscription Manager</i>.")
+	
+	// Generate Event Log Viewer URL
+	Set tSC=##class(PivotSubscriptions.Utils).GenerateLink(.tEventLogURL)
+	If $$$ISERR(tSC) Quit
+	Set tEventLogURL=tEventLogURL_$system.CSP.GetDefaultApp($namespace)_"/PivotSubscriptions.UI.EventLogViewer.zen"
+	
+	Do tMsg.TextData.WriteLine("<br>Please check the <a href='"_tEventLogURL_"'>Event Log Viewer</a>.")
 	Do tMsg.TextData.WriteLine("<br/><br/>MDX Executed:")
 	Do tMsg.TextData.WriteLine(pMDX)
 	If pCustomFilter'="" {
@@ -243,6 +266,20 @@ ClassMethod ActionCommand(ByRef pContext As %ZEN.proxyObject) As %String
 	}
 
 	Quit tCommand
+}
+
+ClassMethod LastSubscriptionStatus(ByRef pLastStatus, pName, pEmail) As %Status
+{
+	Set tSC=$$$OK
+	Set pLastStatus=$$$OK
+
+	Set tSQL="SELECT TableError From PivotSubscriptions.EventLog WHERE Name=? AND Emails=? AND ((EventType='sendSubscription') OR (EventType='sendNow')) ORDER BY ID Desc"
+	Set tSQLRS=##class(%SQL.Statement).%ExecDirect(,tSQL,pName,pEmail)
+	Do tSQLRS.%Next()
+	Do tSQLRS.%Next()
+	Set pLastStatus=tSQLRS.TableError
+
+	Quit tSC
 }
 
 ClassMethod ExecuteForSubscription(pMDX, pCustomFilter = "", ByRef pHasResults = 0) As %Status
