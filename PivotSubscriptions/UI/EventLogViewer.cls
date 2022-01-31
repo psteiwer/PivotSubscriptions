@@ -32,7 +32,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<column colName="UserName" filterType="text" filterOp="UP["/>
 	<column colName="Name" filterType="text" filterOp="UP["/>
 	<column colName="Emails" filterType="text" filterOp="UP["/>
-	<column colName="Status" filterType="text" filterOp="UP["/>
+	<column colName="Status" filterType="text" filterOp="UP[" OnDrawCell="FormatStatus"/>
 </tablePane>
 </vgroup>
 </hgroup>
@@ -55,6 +55,12 @@ Method %OnGetTitle() As %String [ Internal ]
 Method %OnGetPageName() As %String [ Internal ]
 {
 	Quit $$$Text("Event Log Viewer","PivotSubscriptions")
+}
+
+Method FormatStatus(pTable As %ZEN.Component.tablePane, pName As %String, pSeed As %String) As %Status
+{
+	Write $System.Status.GetErrorText(%query(pName))
+	Quit $$$OK
 }
 
 }
