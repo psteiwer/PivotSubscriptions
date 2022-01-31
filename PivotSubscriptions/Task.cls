@@ -101,7 +101,8 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 			Set server=##class(%Net.SMTP).%New()
 			Set server.smtpserver=##class(%SYS.Task.Config).GetData("MailServer")
 			Set msg=##class(%Net.MailMessage).%New()
-			Set msg.From="PivotSubscriptions"
+			Set emaildomain=##class(PivotSubscriptions.Utils).GetSettings("EmailDomain")
+			Set msg.From="PivotSubscriptions"_$select(emaildomain'="":"@"_emaildomain,1:"")
 			Do msg.To.SetAt(tEmail,1)
 			
 			Set validAdminEmail=##class(PivotSubscriptions.Utils).CheckConfigurationGlobal("AdminEmail")
