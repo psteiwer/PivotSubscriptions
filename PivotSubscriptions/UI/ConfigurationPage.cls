@@ -15,6 +15,7 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 	<spacer width="20" />
 	<vgroup cellStyle="padding:2px 0px 6px 2px" enclosingStyle="padding-left:10px;padding-top:20px;" labelPosition="left">
 			<text id="AdminEmailText" label="Send error email notification to" size="25" />
+			<text id="EmailDomain" label="Email Domain" size="25" />
 			<label label="Server Link Configuration" labelClass="sectionCaption" containerStyle="padding-top:5px;padding-bottom:5px;" />
 			<radioSet id="HTTPButton" label="HTTP or HTTPS?" displayList="HTTP, HTTPs" valueList="http://,https://" />
 			<text id="ServerText" label="Server" size="25" />
@@ -88,6 +89,9 @@ Method %OnAfterCreatePage() As %Status
 	If $G(^PivotSubscriptions.Settings("ErrorTypes"))'="" {
 		Set ..%GetComponentById("ErrorTypes").value=^PivotSubscriptions.Settings("ErrorTypes")
 	}
+	If $G(^PivotSubscriptions.Settings("EmailDomain"))'="" {
+		Set ..%GetComponentById("EmailDomain").value=^PivotSubscriptions.Settings("EmailDomain")
+	}
 	
 	
 	Quit $$$OK
@@ -106,19 +110,20 @@ ClientMethod ButtonClick() [ Language = javascript ]
 		var customfootermessage=zen('CustomFooterMessage').getValue();
 		var changesonly=zen('ChangesOnly').getValue();
 		var errortypes=zen('ErrorTypes').getValue();
+		var emaildomain=zen('EmailDomain').getValue();
 		
-		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage,changesonly,errortypes);
+		var status=zenPage.SaveConfiguration(adminemail,http,server,port,nodataemail,nodatamessage,customfooter,customfootermessage,changesonly,errortypes,emaildomain);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
 }
 
-Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes) As %Status [ ZenMethod ]
+Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes, pEmailDomain) As %Status [ ZenMethod ]
 {
 	Set tSC=$$$OK
 	
-	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes)
+	Set tSC = ##class(PivotSubscriptions.Utils).ConfigureSettings(pAdminEmail, pHttp, pServer, pPort, pNoDataEmail, pNoDataMessage, pCustomFooter, pCustomFooterMessage, pChangesOnly, pErrorTypes, pEmailDomain)
 	
 	Quit tSC
 }
