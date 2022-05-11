@@ -13,7 +13,7 @@ Property Hour As %Integer(MAXVAL = 23, MINVAL = 0) [ Required ];
 
 Property Minute As %Integer(VALUELIST = ",0,15,30,45") [ Required ];
 
-Property Format As %String(VALUELIST = ",Excel,PDF");
+Property Format As %String(VALUELIST = ",Excel,PDF,CSV");
 
 Property Emails As %String(MAXLEN = "") [ Required ];
 

@@ -88,15 +88,19 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 			Set tSC=##class(PivotSubscriptions.Utils).ExecuteForSubscription(mdx,tCustomFilter,.tHasResults)
 			If $$$ISERR(tSC) Quit
 			
+			Set tFormat="Excel"
 			If tHasResults {
 				// Only generate file if requested pivot has results
-				Set tSC=##class(PivotSubscriptions.Utils).GenerateFileForSubscription("Excel",mdx,tCustomFilter,pName,pPivot,.tFilename)
+				If pFormat="CSV" {
+					Set tFormat="CSV"
+				}
+				Set tSC=##class(PivotSubscriptions.Utils).GenerateFileForSubscription(tFormat,mdx,tCustomFilter,pName,pPivot,.tFilename)
 				If $$$ISERR(tSC) Quit
 			}
 
 			// Generate email
 			// check whether the table generated is too wide/truncated AND whether the table has data
-			Set tableStatus=##class(PivotSubscriptions.Utils).CheckTable(pName)
+			Set tableStatus=##class(PivotSubscriptions.Utils).CheckTable(pName,tFilename)
 		
 			Set server=##class(%Net.SMTP).%New()
 			Set server.smtpserver=##class(%SYS.Task.Config).GetData("MailServer")
@@ -120,7 +124,7 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 			
 			If tHasResults {
 				// Add attachment
-				Do ##class(PivotSubscriptions.Utils).WriteEmail(tSubscription,msg,tableStatus,tUnsubscribeList)
+				Do ##class(PivotSubscriptions.Utils).WriteEmail(tSubscription,msg,tableStatus,tUnsubscribeList,.tFilename)
 
 				// if table is too large, then just attach Excel instead
 				If ((pFormat = "PDF") && (tableStatus)) {
@@ -135,7 +139,11 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 					}
 				}
 				
-				Set tSC=msg.AttachFile("",tFilename)
+				If $L(tFilename,"\") {
+					Set tSC=msg.AttachFile($P(tFilename,"\",1,*-1),$P(tFilename,"\",*))
+				} Else {
+					Set tSC=msg.AttachFile("",tFilename)
+				}
 				If $$$ISERR(tSC) Quit
 			} Else {
 				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)

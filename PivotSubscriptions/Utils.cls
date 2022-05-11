@@ -70,34 +70,52 @@ ClassMethod GenerateLink(ByRef pLink As %String = "") As %Status
 	Quit tSC
 }
 
-ClassMethod CheckTable(pName As %String) As %Status
+ClassMethod CheckTable(pName As %String, pFilename As %String) As %Status
 {
-	Set tFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
-
+	If pFilename="" {
+		Quit 0
+	}
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
-	Set tSC=tStream.LinkToFile(tFilename)
+	Set tSC=tStream.LinkToFile(pFilename)
 	
 	// check that file is valid file
 	If $$$ISERR(tSC) Quit tSC
 	
 	Set tTableStatus=0
 	Set tHeaderCount=0
-	// iterate through stream to check that table has actual data
-	While 'tStream.AtEnd {
-		Set tLine=tStream.ReadLine()
-		
-		If $Find(tLine,"<th") {
-			Set tHeaderCount=tHeaderCount+1
-		}
-		
-		If $Find(tLine,"<td") {
-			Set tTableStatus=1
-			// parameterize headerCount
-			If (tHeaderCount > 20) {
-				Set tTableStatus=0
+
+	If $e(pFilename,*-2,*)="csv" {
+		Set tLineCount=0
+		While 'tStream.AtEnd {
+			Set tLine=tStream.ReadLine()
+			Set tLineCount=$I(tLineCount)
+			
+			If tLineCount=4 {
+				Set tHeaderCount=$L(tLine,",")
 			}
-			Quit
+		}
+
+		If (tHeaderCount<15) && (tLineCount<50) {
+			Set tTableStatus=1
+		}
+	} Else {
+		// iterate through stream to check that table has actual data
+		While 'tStream.AtEnd {
+			Set tLine=tStream.ReadLine()
+			
+			If $Find(tLine,"<th") {
+				Set tHeaderCount=tHeaderCount+1
+			}
+			
+			If $Find(tLine,"<td") {
+				Set tTableStatus=1
+				// parameterize headerCount
+				If (tHeaderCount > 20) {
+					Set tTableStatus=0
+				}
+				Quit
+			}
 		}
 	}
 	
@@ -138,7 +156,7 @@ ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 }
 
 /// Write improved email format for subscription, including embeded pivot table
-ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus, pUnsubscribeList)
+ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As %Net.MailMessage, pTableStatus, pUnsubscribeList, pFilename)
 {
 	Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(pMsg)
 
@@ -146,11 +164,10 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 	If tName="" {
 		Set tName=$E(pSubscription.Pivot,1,*-6)
 	}
-	Set tFilename=$replace($zstrip(tName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 
 	// embed pivot table as HTML table to email
 	Set tStream=##class(%Stream.FileCharacter).%New()
-	Set tSC=tStream.LinkToFile(tFilename)
+	Set tSC=tStream.LinkToFile(pFilename)
 	If $$$ISERR(tSC) Quit tSC
 		
 	// check subscription to see if its table has error status 
@@ -166,28 +183,38 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 			Do pMsg.TextData.WriteLine(pSubscription.CustomEmailText)
 		}
 
-		// .xls to String stream that is read by line and then written to the email (as HTML) by line	
-		While 'tStream.AtEnd {
-			Set tLine=tStream.ReadLine()
-	
-			// properly center and format table to match the rest of the style of the email
-			If tLine="<table border=""0"">" {
-				Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
-			} ElseIf tLine="<table border=""1"">" {
-				Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
-			} ElseIf (($Find(tLine,"<x"))||($Find(tLine,"</x"))||($Find(tLine,"<body>"))||($Find(tLine,"<html>"))||(tLine="</html>")) {
-				Continue
-			} Else {
-				// If 'Short Date' exists, the time value has been changed to excel format
-				If ($Find(tLine,"'Short Date'")) {
-					Set tTimeStartPos=$Find(tLine,"'Short Date'")+2
-					Set tTimeEndPos=$Find(tLine,"<",tTimeStartPos)-2
-					Set tTime=$E(tLine,tTimeStartPos,tTimeEndPos)
-					Set tTime=tTime+$ZDateH("12/30/1899")
-					// Insert the new date display, using the default DeepSee date display option
-					Set tLine=$E(tLine,1,tTimeStartPos-1)_$ZDate(tTime,6)_$E(tLine,tTimeEndPos+1,*)
-				}
+		If $p(pFilename,".",*)="csv" {
+			Do pMsg.TextData.WriteLine("<p>")
+			While 'tStream.AtEnd {
+				Set tLine=tStream.ReadLine()
 				Do pMsg.TextData.WriteLine(tLine)
+				Do pMsg.TextData.WriteLine("</br>")
+			}
+			Do pMsg.TextData.WriteLine("</p>")
+		} Else {
+			// .xls to String stream that is read by line and then written to the email (as HTML) by line	
+			While 'tStream.AtEnd {
+				Set tLine=tStream.ReadLine()
+		
+				// properly center and format table to match the rest of the style of the email
+				If tLine="<table border=""0"">" {
+					Do pMsg.TextData.WriteLine("<table style='width:70%; margin-left:15%; margin-right:15%;'>")
+				} ElseIf tLine="<table border=""1"">" {
+					Do pMsg.TextData.WriteLine("<table border='1' style='width:100%'")
+				} ElseIf (($Find(tLine,"<x"))||($Find(tLine,"</x"))||($Find(tLine,"<body>"))||($Find(tLine,"<html>"))||(tLine="</html>")) {
+					Continue
+				} Else {
+					// If 'Short Date' exists, the time value has been changed to excel format
+					If ($Find(tLine,"'Short Date'")) {
+						Set tTimeStartPos=$Find(tLine,"'Short Date'")+2
+						Set tTimeEndPos=$Find(tLine,"<",tTimeStartPos)-2
+						Set tTime=$E(tLine,tTimeStartPos,tTimeEndPos)
+						Set tTime=tTime+$ZDateH("12/30/1899")
+						// Insert the new date display, using the default DeepSee date display option
+						Set tLine=$E(tLine,1,tTimeStartPos-1)_$ZDate(tTime,6)_$E(tLine,tTimeEndPos+1,*)
+					}
+					Do pMsg.TextData.WriteLine(tLine)
+				}
 			}
 		}
 	} Else {
@@ -324,6 +351,10 @@ ClassMethod GenerateFileForSubscription(pType = "Excel", pMDX, pCustomFilter, pN
 	If pType="Excel" {
 		Set pFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".xls"
 		Set tSC=##class(%DeepSee.Utils).%ExportExcelToFile(pFilename,.pParms)
+	} ElseIf pType="CSV" {
+		Set pFilename=$replace($zstrip(pName,"*PC'W",,"/")_" - "_$zd($h,6),"/","-")_".csv"
+		Set tSC=##class(%DeepSee.Utils).%ExportCSVToFile(pFilename,.pParms,.tFilename)
+		Set pFilename=tFilename
 	} Else {
 		Set pFilename = $EXTRACT(pFilename,1,$LENGTH(pFilename)-3) _ "pdf"
 		Do ##class(%DeepSee.Utils).%ExportPDFToFile(pFilename,.pParms)
