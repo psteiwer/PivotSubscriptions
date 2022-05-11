@@ -96,7 +96,7 @@ ClassMethod CheckTable(pName As %String, pFilename As %String) As %Status
 			}
 		}
 
-		If (tHeaderCount<15) && (tLineCount<50) {
+		If (tHeaderCount<20) && (tLineCount<50) {
 			Set tTableStatus=1
 		}
 	} Else {
