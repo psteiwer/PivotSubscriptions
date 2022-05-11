@@ -185,12 +185,67 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 
 		If $p(pFilename,".",*)="csv" {
 			Do pMsg.TextData.WriteLine("<p>")
-			While 'tStream.AtEnd {
+			For i=1:1:3 {
+				// Output header information outside of table
 				Set tLine=tStream.ReadLine()
+				If ($E(tLine,1)="""") && ($E(tLine,*)="""") {
+					// Remove " from strings to make it look nicer
+					Set tLine=$E(tLine,2,*-1)
+				}
 				Do pMsg.TextData.WriteLine(tLine)
 				Do pMsg.TextData.WriteLine("</br>")
 			}
 			Do pMsg.TextData.WriteLine("</p>")
+
+			Do pMsg.TextData.WriteLine("<table border=1>")
+			Set tIsColHeader=1
+			Set tRowHeaders=0
+			Set tLineNumber=0
+			While 'tStream.AtEnd {
+				Set tLine=tStream.ReadLine()
+				Set tLineNumber=$I(tLineNumber)
+				Do pMsg.TextData.WriteLine("<tr>")
+				Set tCompound=0
+				Set tPiece=""
+				If $E(tLine,1)'="," {
+					// Headers will start with "nub" cells
+					Set tIsColHeader=0
+				}
+				For i=1:1:$L(tLine,",") {
+					If tCompound {
+						Set tPiece=tPiece_","_$P(tLine,",",i)
+					} Else {
+						Set tPiece=$P(tLine,",",i)
+					}
+					Set tCompound=0
+					If $E(tPiece,1)="""" {
+						If $E(tPiece,*)'="""" {
+							// Read next piece, data contained ','
+							Set tCompound=1
+							Continue
+						}
+						Set tPiece=$E(tPiece,2,*-1)
+					}
+
+					If (tLineNumber=1) && (tPiece="") {
+						Set tRowHeaders=$I(tRowHeaders)
+					}
+
+					If tIsColHeader || (i<=tRowHeaders) {
+						Do pMsg.TextData.WriteLine("<th>")
+					} Else {
+						Do pMsg.TextData.WriteLine("<td>")
+					}
+					Do pMsg.TextData.WriteLine(tPiece)
+					If tIsColHeader || (i<=tRowHeaders) {
+						Do pMsg.TextData.WriteLine("</th>")
+					} Else {
+						Do pMsg.TextData.WriteLine("</td>")
+					}
+				}
+				Do pMsg.TextData.WriteLine("</tr>")
+			}
+			Do pMsg.TextData.WriteLine("</table>")
 		} Else {
 			// .xls to String stream that is read by line and then written to the email (as HTML) by line	
 			While 'tStream.AtEnd {
