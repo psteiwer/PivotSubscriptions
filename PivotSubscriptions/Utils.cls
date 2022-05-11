@@ -232,7 +232,7 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 					}
 
 					If tIsColHeader || (i<=tRowHeaders) {
-						Do pMsg.TextData.WriteLine("<th>")
+						Do pMsg.TextData.WriteLine("<th style=""background:#E0E0FF;"">")
 					} Else {
 						Do pMsg.TextData.WriteLine("<td>")
 					}
