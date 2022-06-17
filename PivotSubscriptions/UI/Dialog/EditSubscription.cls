@@ -11,7 +11,7 @@ Parameter DOMAIN = "PivotSubscriptions";
 
 Property pivotName As %ZEN.Datatype.string(ZENURL = "PIVOTNAME");
 
-Property SubscriptionId As %ZEN.Datatype.integer(ZENURL = "SUBSCRIPTIONID");
+Property SubscriptionId As %ZEN.Datatype.integer(ZENURL = "SUBSCRIPTIONID") [ InitialExpression = 0 ];
 
 Property SelectedEmail As %String;
 
@@ -30,7 +30,15 @@ XData Style
 XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane xmlns="http://www.intersystems.com/zen" title="">
-<label id="PivotTable" label="Subscription source: "/>
+<dataCombo id="PivotTable" label="Subscription source: " title="Select a pivot table for subscription source" name="PivotTable"
+		editable="true" unrestricted="true"	searchKeyLen="10" dropdownWidth="50.0em" size="40"
+		queryClass="PivotSubscriptions.UI.PivotList" queryName="GetPivots"
+		comboType="timer" disabled="false" hidden="false"		
+		displayColumns="1,2" choiceColumn="2" valueColumn="2" 
+		columnHeaders="Owner,Name"	
+		>
+</dataCombo>
+<!--label id="PivotTable" label="Subscription source: "/-->
 <text id="SubscriptionId" value="0" hidden="true"/>
 <label id="Name" label="Subscription name: "/>
 <text id="SubscriptionName" size="40"/>
@@ -98,8 +106,11 @@ Method %OnAfterCreatePage() As %Status
 		}
 	}
 
-	Set tTable=..%GetComponentById("PivotTable")
-	Set tTable.label="Subscription source: """_$ZCONVERT(..pivotName,"I","HTML")_""""
+	If ..pivotName'="" {
+		Set tTable=..%GetComponentById("PivotTable")
+		Set tTable.value=$ZCONVERT(..pivotName,"I","HTML")
+		Set tTable.readOnly=1
+	}
 
 	Set tOK=..%GetComponentById("btnOK")
 	Set tOK.caption="Save"
@@ -166,11 +177,15 @@ ClientMethod ondialogFinish(action) As %Boolean [ Language = javascript ]
 			alert($$$Text('Please enter at least 1 email.'));
 			return false;
 		}
-		var pivot=this.pivotName;
+		var pivotName=zen("PivotTable").getValue()
+		if (pivotName=="") {
+			alert($$$Text('Please enter at least 1 email.'));
+			return false;
+		}
 		var emailtext=zen('CustomEmailText').getValue();
 		var runonce=zen('RunOnce').getValue();
 		
-		var status=zenPage.EditSubscription(subscriptionid,pivot,dayofweek,hour,minute,emails,format,name,emailtext,runonce);
+		var status=zenPage.EditSubscription(subscriptionid,pivotName,dayofweek,hour,minute,emails,format,name,emailtext,runonce);
 
 		if (status!=1) {
 			alert("Error during save, see Event Log for more details.");
@@ -396,6 +411,56 @@ Method GetPivotCube(pPivot) As %String [ ZenMethod ]
 	Set tCube=tRS.%GetCubeName()
 
 	Quit tCube
+}
+
+Query GetPivots(pSearch As %String = "") As %Query(ROWSPEC = "POwner:%String,PName:%String,PSubscription:%String")
+{
+}
+
+ClassMethod GetPivotsExecute(ByRef qHandle As %Binary, pSearch As %String = "") As %Status
+{
+	Set tSC=$$$OK
+	
+	Set tSC=##class(%DeepSee.UserPortal.Utils).%GetFolderItemsForUser(.tItems,,,1,1)
+	
+	If $$$ISERR(tSC) Quit tSC
+	
+	Set tItem=$O(tItems(""))
+	While tItem'="" {
+		If $LG(tItems(tItem),2)="Pivot" {
+			Set tTemp=tItems(tItem)
+			If (pSearch'="") && (($$$UPPER($LG(tTemp,10))'[$$$UPPER(pSearch))&&($$$UPPER($LG(tTemp,1))'[$$$UPPER(pSearch))) {
+				Set tTemp=""
+			}
+			Set:tTemp'="" tPivots($I(tPivots))=tTemp  // Sort by pivot ID
+			//Set:tTemp'="" tPivots($LG(tTemp,1))=tTemp  // Sort by pivot name
+		}
+		Set tItem=$O(tItems(tItem))
+	}
+	
+	Merge ^||PivotSubscriptions.getPivotExecute=tPivots
+    Set qHandle=""
+    Quit $$$OK
+}
+
+ClassMethod GetPivotsFetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef AtEnd As %Integer = 0) As %Status [ PlaceAfter = GetPivotsExecute ]
+{
+    Set qHandle=$O(^||PivotSubscriptions.getPivotExecute(qHandle))
+    If qHandle="" {
+	    Set AtEnd=1
+	    Quit $$$OK
+    }
+	
+	Set Row=$lb($LG(^||PivotSubscriptions.getPivotExecute(qHandle),10),$LG(^||PivotSubscriptions.getPivotExecute(qHandle),1),"Subscription")
+    Set AtEnd=0
+    
+    Quit $$$OK
+}
+
+ClassMethod GetPivotsClose(ByRef qHandle As %Binary) As %Status [ PlaceAfter = GetPivotsFetch ]
+{
+    Set qHandle=""
+    Quit $$$OK
 }
 
 }
