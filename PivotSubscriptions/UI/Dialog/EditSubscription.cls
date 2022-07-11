@@ -32,7 +32,7 @@ XData dialogBody [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <pane xmlns="http://www.intersystems.com/zen" title="">
 <dataCombo id="PivotTable" label="Subscription source: " title="Select a pivot table for subscription source" name="PivotTable"
 		editable="true" unrestricted="true"	searchKeyLen="10" dropdownWidth="50.0em" size="40"
-		queryClass="PivotSubscriptions.UI.PivotList" queryName="GetPivots"
+		queryClass="PivotSubscriptions.UI.Dialog.EditSubscription" queryName="GetPivots"
 		comboType="timer" disabled="false" hidden="false"		
 		displayColumns="1,2" choiceColumn="2" valueColumn="2" 
 		columnHeaders="Owner,Name"	
