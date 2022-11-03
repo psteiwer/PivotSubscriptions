@@ -60,6 +60,21 @@ Method %OnGetProductName() As %String [ Internal ]
 	Quit "DeepSee"
 }
 
+/// Decorate the page.
+Method %OnAfterCreatePage() As %Status
+{
+	Set tSC=$$$OK
+
+	Set tIsManager=$System.Security.Check("PivotSubscriptionsManager","USE")
+	If 'tIsManager {
+		Set tCreatedBy=..%GetComponentById("CreatedBy")
+		Set tCreatedBy.filterValue=$USERNAME
+		Set tCreatedBy.filterType=""
+	}
+
+	Quit tSC
+}
+
 /// This client event is fired when a popup page launched from this page fires an action.
 ClientMethod onPopupAction(popupName, action, value) [ Internal, Language = javascript ]
 {
