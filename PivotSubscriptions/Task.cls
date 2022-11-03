@@ -138,7 +138,9 @@ ClassMethod SendEmail(pID, pSendNow As %Boolean = 0, pPivot As %String, pEmails 
 				If $$$ISERR(tSC) Quit
 			} Else {
 				Do ##class(PivotSubscriptions.Utils).WriteEmailHeader(msg)
-				Do msg.TextData.WriteLine(##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage","No data for requested pivot."))
+				Set tSC=##class(PivotSubscriptions.Utils).WriteAnalyzerLink(msg,tSubscription.Pivot)
+				If $$$ISERR(tSC) Quit
+				Do msg.TextData.WriteLine("</br></br>"_##class(PivotSubscriptions.Utils).GetSettings("NoDataMessage","No data for requested pivot."))
 				Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(msg,tUnsubscribeList)
 				Do ##class(PivotSubscriptions.Utils).WriteEmailFooter(msg)
 

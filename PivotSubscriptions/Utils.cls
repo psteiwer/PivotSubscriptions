@@ -103,6 +103,16 @@ ClassMethod CheckTable(pName As %String) As %Status
 	Quit tTableStatus
 }
 
+ClassMethod WriteAnalyzerLink(pMsg As %Net.MailMessage, pPivotName) As %Status
+{
+	Set tSC=##class(PivotSubscriptions.Utils).GenerateLink(.tAnalyzerURL)
+	Quit:$$$ISERR(tSC) tSC
+	Set tAnalyzerURL=tAnalyzerURL_$system.CSP.GetDefaultApp($namespace)_"/_DeepSee.UI.Analyzer.zen?PIVOT="_pPivotName
+	Do pMsg.TextData.WriteLine("<a href='"_tAnalyzerURL_"'>Click Here</a> to view the pivot table in your browser.")
+
+	Quit tSC
+}
+
 /// Write header for any email, including styling
 ClassMethod WriteEmailHeader(pMsg As %Net.MailMessage)
 {
@@ -151,14 +161,12 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 	Set tStream=##class(%Stream.FileCharacter).%New()
 	Set tSC=tStream.LinkToFile(tFilename)
 	If $$$ISERR(tSC) Quit tSC
+
+	Set tSC=##class(PivotSubscriptions.Utils).WriteAnalyzerLink(pMsg,pSubscription.Pivot)
+	If $$$ISERR(tSC) Quit tSC
 		
 	// check subscription to see if its table has error status 
 	If pTableStatus {
-		// Include link to view in Analyzer
-		Set tSC=##class(PivotSubscriptions.Utils).GenerateLink(.tAnalyzerURL)
-		If $$$ISERR(tSC) Quit
-		Set tAnalyzerURL=tAnalyzerURL_$system.CSP.GetDefaultApp($namespace)_"/_DeepSee.UI.Analyzer.zen?PIVOT="_pSubscription.Pivot
-		Do pMsg.TextData.WriteLine("<a href='"_tAnalyzerURL_"'>Click Here</a> to view the pivot table in your browser.")
 
 		// Include Subscription's custom email text
 		If pSubscription.CustomEmailText'="" {
@@ -191,7 +199,7 @@ ClassMethod WriteEmail(pSubscription As PivotSubscriptions.Subscription, pMsg As
 		}
 	} Else {
 		// custom error message
-		Do pMsg.TextData.WriteLine("Pivot table is too big to be embedded. Please see attachment.")
+		Do pMsg.TextData.WriteLine("</br></br>Pivot table is too big to be embedded. Please see attachment.")
 	}
 
 	Do ##class(PivotSubscriptions.Utils).WriteUnsubscribe(pMsg,pUnsubscribeList)
