@@ -13,7 +13,7 @@ Property Hour As %Integer(MAXVAL = 23, MINVAL = 0) [ Required ];
 
 Property Minute As %Integer(VALUELIST = ",0,15,30,45") [ Required ];
 
-Property Format As %String(VALUELIST = ",Excel,PDF");
+Property Format As %String(VALUELIST = ",Excel,PDF,CSV");
 
 Property Emails As %String(MAXLEN = "") [ Required ];
 
@@ -65,6 +65,19 @@ Method Unsubscribe(pEmail) As %Status
     Do tEvent.UpdateStatus(tSC)
 
     Quit tSC
+}
+
+ClassMethod GetScheduleDisplay(pID = "") As %String [ SqlProc ]
+{
+	Set tDisplay=""
+	Quit:pID="" tDisplay
+	
+	Set tSubscription=##class(PivotSubscriptions.Subscription).%OpenId(pID)
+    Quit:'$ISOBJECT(tSubscription) tDisplay
+
+    Set tDisplay=##class(PivotSubscriptions.EventLog).DayOfWeekDisplay(tSubscription.DayOfWeek)_"@"_tSubscription.Hour_":"_$REPLACE($JUSTIFY(tSubscription.Minute,2)," ",0)
+
+	Quit tDisplay
 }
 
 Storage Default

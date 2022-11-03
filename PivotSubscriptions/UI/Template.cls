@@ -10,8 +10,8 @@ Method OnGetRibbonInfo(Output pDisplay As %Boolean, Output pViewIcons As %List, 
 	Set pSearchBox=0
 	Set pRibbonTitle=$$$Text(..#PAGENAME)
 
+	Set pCommands($I(pCommands))=$LB("newSubscription",$$$Text("New Subscription"),$$$Text("Create new subscription"),"zenPage.newSubscription();")
 	Set pCommands($I(pCommands))=$LB("subscriptionManager",$$$Text("Subscription Manager"),$$$Text("Manage Pivot Subscriptions"),"zenPage.navigate('subscriptionManager');")
-	Set pCommands($I(pCommands))=$LB("pivotList",$$$Text("Pivot List"),$$$Text("View All Pivot Tables"),"zenPage.navigate('pivotList');")
 	// Check for additional permissions?
 	Set pCommands($I(pCommands))=$LB("configurationPage",$$$Text("Configuration Page"),$$$Text("Configure Settings"),"zenPage.navigate('configurationPage');")
 	Set pCommands($I(pCommands))=$LB("eventLogViewer",$$$Text("Event Log Viewer"),$$$Text("Event Log Viewer"),"zenPage.navigate('eventLogViewer');")
@@ -37,6 +37,16 @@ ClientMethod navigate(pageName) [ Language = javascript ]
 	if (location!="") {
 		window.location.href=location;
 	}
+}
+
+/// Creates edit popup.
+ClientMethod newSubscription() [ Internal, Language = javascript ]
+{
+	var parms = {
+		MODE:"models",
+	};
+	
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls','PivotSubscriptions','status,resizable=yes,width=700,height=610',parms);
 }
 
 }

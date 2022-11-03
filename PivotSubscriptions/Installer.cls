@@ -4,10 +4,13 @@ Class PivotSubscriptions.Installer
 XData LocalInstall [ XMLNamespace = INSTALLER ]
 {
 <Manifest>
+	<Role
+		Name="PivotSubscriptionsUnsubscribe"
+	/>
+	<Resource
+		Name="PivotSubscriptionsManager"
+	/>
 	<Namespace Name="${NAMESPACE}" Create="no" Ensemble="0">
-		<Role
-			Name="PivotSubscriptionsUnsubscribe"
-		/>
 		<!--CSPApplication
 			Url="/api/pivotsubscriptionsunsubscribe"
 			Directory="${CSPDIR}" 

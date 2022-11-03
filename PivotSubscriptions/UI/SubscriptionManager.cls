@@ -30,7 +30,9 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 <column colName="ID" header="Subscription ID" hidden="true" />
 <column id="Name" colName="Name" header="Name" filterType="text" filterOp="UP[" />
 <column id="Pivot" colName="Pivot" header="Pivot" link="./_DeepSee.UserPortal.Analyzer.zen?PIVOT=#(%query.Pivot)#" filterType="text" filterOp="UP[" />
+<column id="CreatedBy" colName="CreatedBy" header="CreatedBy" filterType="text" filterOp="UP[" />
 <column id="Emails" colName="Emails" header="Emails" filterType="text" filterOp="UP[" />
+<column colExpression="PivotSubscriptions.Subscription_GetScheduleDisplay(ID)" colName="Schedule" header="Schedule" filterType="text" filterOp="UP[" />
 <column onclick="zenPage.editSubscription(#(%query.ID)#,'#(%query.Pivot)#')" linkCaption="Edit" link="#"/>
 <column onclick="return zenPage.deleteSubscription('#(%query.ID)#');" linkCaption="Delete" link="#" />
 <column onclick="return zenPage.sendSubscriptionNow('#(%query.ID)#','#(%query.Pivot)#');" linkCaption="Send Now" link="#" />
@@ -56,6 +58,21 @@ Method %OnGetPageName() As %String [ Internal ]
 Method %OnGetProductName() As %String [ Internal ]
 {
 	Quit "DeepSee"
+}
+
+/// Decorate the page.
+Method %OnAfterCreatePage() As %Status
+{
+	Set tSC=$$$OK
+
+	Set tIsManager=$System.Security.Check("PivotSubscriptionsManager","USE")
+	If 'tIsManager {
+		Set tCreatedBy=..%GetComponentById("CreatedBy")
+		Set tCreatedBy.filterValue=$USERNAME
+		Set tCreatedBy.filterType=""
+	}
+
+	Quit tSC
 }
 
 /// This client event is fired when a popup page launched from this page fires an action.
@@ -91,7 +108,7 @@ ClientMethod editSubscription(pId, pPivot) [ Internal, Language = javascript ]
 		MODE:"models",
 	};
 	
-	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=700,height=575',parms);
+	zenLaunchPopupWindow('PivotSubscriptions.UI.Dialog.EditSubscription.cls?SUBSCRIPTIONID='+pId+'&PIVOTNAME='+pPivot,'PivotSubscriptions','status,resizable=yes,width=700,height=610',parms);
 }
 
 /// Delete the selected subscription.
@@ -166,13 +183,6 @@ Method SendNow(pId, pPivot, pEmail As %String) As %String [ ZenMethod ]
 Method GetManagerEmail() As %String [ ZenMethod ]
 {
 	Quit ##class(PivotSubscriptions.Utils).GetSettings("AdminEmail")
-}
-
-/// Query to get subscriptions for Subscription Manager display table.
-Query GetSubscriptionsForDisplay() As %SQLQuery
-{
-	SELECT ID,Name,Pivot,Emails
-	FROM PivotSubscriptions.Subscription
 }
 
 }
