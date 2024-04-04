@@ -394,7 +394,7 @@ ClassMethod ExecuteForSubscription(pMDX, pCustomFilter = "", ByRef pHasResults =
 		// Workaround for 2024.1 bug
 		Do tRS.%GetListingResultSet(.tListingRS)
 		While tListingRS.%Next() {}
-		If (tRS.listingRows>0) || (tListingRS.%ROWCOUNT>0) {
+		If (tListingRS.%ROWCOUNT>0) {
 			Set pHasResults=1
 		}
 	} Else {
