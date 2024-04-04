@@ -66,6 +66,10 @@ ClassMethod GenerateLink(ByRef pLink As %String = "") As %Status
 			Set pLink=pLink_":"_p
 		}
 	}
+
+	If $Get(up)'="" {
+		Set pLink=pLink_"/"_up
+	}
 	
 	Quit tSC
 }
@@ -386,6 +390,7 @@ ClassMethod ExecuteForSubscription(pMDX, pCustomFilter = "", ByRef pHasResults =
 	Set tRS=##class(%DeepSee.ResultSet).%New()
 	Do tRS.%PrepareMDX(pMDX)
 	Do tRS.%Execute()
+	Do tRS.%Print()
 	If tRS.%Query.queryType="DRILLTHROUGH" {
 		If tRS.listingRows>0 {
 			Set pHasResults=1
