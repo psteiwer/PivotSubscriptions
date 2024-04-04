@@ -390,6 +390,7 @@ ClassMethod ExecuteForSubscription(pMDX, pCustomFilter = "", ByRef pHasResults =
 	Set tRS=##class(%DeepSee.ResultSet).%New()
 	Do tRS.%PrepareMDX(pMDX)
 	Do tRS.%Execute()
+	Do tRS.%Print()
 	If tRS.%Query.queryType="DRILLTHROUGH" {
 		If tRS.listingRows>0 {
 			Set pHasResults=1
