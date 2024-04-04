@@ -66,6 +66,10 @@ ClassMethod GenerateLink(ByRef pLink As %String = "") As %Status
 			Set pLink=pLink_":"_p
 		}
 	}
+
+	If $Get(up)'="" {
+		Set pLink=pLink_"/"_up
+	}
 	
 	Quit tSC
 }
