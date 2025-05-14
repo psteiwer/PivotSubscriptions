@@ -6,6 +6,17 @@ PivotSubsctions allows users to subscribe to a pivot table and recieve a schedul
 Once installation is complete, a new "Pivot Subscriptions" Link will be added to the InterSystems IRIS Business Intelligence User Portal. The User Portal can be found at the Management Portal -> Analytics -> User Portal.
 
 ## Installation
+### ZPM Install
+1. ```zpm "install pivotsubscriptions"```
+2. Follow [Configuration Steps](#configuration-steps)
+
+### Docker Install (for development)
+1. Clone Repo
+2. ```docker compose up -d --build```
+3. http://localhost:61773/csp/user/PivotSubscriptions.UI.SubscriptionManager.zen
+4. Follow [Configuration Steps](#configuration-steps)
+
+### Manual Install
 1. Use the Download ZIP option for this project
 2. Extract the files and copy path
 	* This is the path to the directory that contains README.md and LICENSE
@@ -16,7 +27,7 @@ Once installation is complete, a new "Pivot Subscriptions" Link will be added to
 	do $system.OBJ.Load(path_"/PivotSubscriptions/Installer.cls","ck",,1)
 	do ##class(PivotSubscriptions.Installer).RunInstaller(path)
 ```
-5. Follow the Configuration steps
+5. Follow [Configuration Steps](#configuration-steps)
 
 ## Configuration steps
 ### Configure Task Manager Email Settings

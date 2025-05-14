@@ -1,0 +1,17 @@
+{
+    "intersystems.servers": {
+            "pivotsubscriptions": {
+                "webServer": {
+                    "scheme": "http",
+                    "host": "localhost",
+                    "port": 61773
+                },
+                "username": "_system"
+            }
+        },
+        "objectscript.conn": {
+            "server": "pivotsubscriptions",
+            "ns": "USER",
+            "active": true
+        }
+    }
