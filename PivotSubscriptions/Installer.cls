@@ -22,7 +22,7 @@ XData LocalInstall [ XMLNamespace = INSTALLER ]
 		</Invoke>
 		<Import File="${APPPATH}/PivotSubscriptions/" Flags="ck" Recurse="1"/>
 		<Invoke Class="PivotSubscriptions.Installer" Method="ImportImage" CheckStatus="1">
-			<Arg Value="${APPPATH}/Assets/PivotSubscriptions_BookCover.png"/>
+			<Arg Value="${APPPATH}/Assets/PivotSubscriptions_Cover.png"/>
 		</Invoke>
 		<Invoke Class="PivotSubscriptions.Installer" Method="CreateBookCover" CheckStatus="1">
 		</Invoke>
@@ -59,7 +59,7 @@ ClassMethod RunInstaller(pRootDir = "")
 	
 	If pRootDir'="" {
 		Do $system.OBJ.LoadDir(pRootDir_"/PivotSubscriptions","ck",,1)
-		Set tSC=..ImportImage(pRootDir_"/Assets/PivotSubscriptions_BookCover.png")
+		Set tSC=..ImportImage(pRootDir_"/Assets/PivotSubscriptions_Cover.png")
 		If $$$ISERR(tSC) Quit
 	}
 	

@@ -1,0 +1,10 @@
+version: '3.6'
+services:
+  iris:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: 
+      - 61972:1972
+      - 61773:52773
