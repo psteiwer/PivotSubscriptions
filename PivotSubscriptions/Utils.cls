@@ -161,7 +161,7 @@ ClassMethod WriteUnsubscribe(pMsg As %Net.MailMessage, pUnsubscribeList)
 ClassMethod WriteEmailFooter(pMsg As %Net.MailMessage)
 {
 	Do pMsg.TextData.WriteLine("<table class='border'><tr><td>&nbsp;</td></tr><tr><td><p class='tab'>")
-	If ^PivotSubscriptions.Settings("CustomFooter") {
+	If $G(^PivotSubscriptions.Settings("CustomFooter"))'="" {
 		Do pMsg.TextData.WriteLine(^PivotSubscriptions.Settings("CustomFooterMessage"))
 	} Else {
 		Do pMsg.TextData.WriteLine("PivotSubcriptions for InterSystems IRIS Business Intelligence")
